@@ -16,6 +16,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.3] - 25-10-2024
+
+### Fixed
+
+- Theme: fixed regression, replace loader() method with asURL(String) because for some reason projects using the new
+  mechanism were failing to get resources and throwing NPEs
+
 ## [11.26.2] - 25-10-2024
 
 ### Changed
