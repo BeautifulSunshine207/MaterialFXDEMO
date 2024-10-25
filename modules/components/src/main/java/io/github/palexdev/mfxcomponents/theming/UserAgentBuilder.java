@@ -18,12 +18,6 @@
 
 package io.github.palexdev.mfxcomponents.theming;
 
-import io.github.palexdev.mfxcomponents.theming.base.Theme;
-import io.github.palexdev.mfxcore.utils.fx.CSSFragment;
-import javafx.application.Application;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
@@ -32,6 +26,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import io.github.palexdev.mfxcomponents.theming.base.Theme;
+import io.github.palexdev.mfxcore.utils.fx.CSSFragment;
+import javafx.application.Application;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 
 /**
  * The best way to style a JavaFX application is to use {@link Application#setUserAgentStylesheet(String)} because the
@@ -312,6 +312,8 @@ public class UserAgentBuilder {
                 .replace("'", "")
                 .replace(";", "")
                 .replace("../", "")
+                .replace("\n", "")
+                .replace("\r", "") // Fucking Windows
                 .split(" ");
             String path = split[1];
             Map<String, Path> deployed = Deployer.instance().getDeployed(theme);
