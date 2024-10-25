@@ -25,7 +25,6 @@ import java.util.Map;
 
 import io.github.palexdev.mfxcomponents.theming.Deployer;
 import io.github.palexdev.mfxcomponents.theming.UserAgentBuilder;
-import io.github.palexdev.mfxresources.MFXResources;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -61,11 +60,9 @@ public interface Theme {
     String path();
 
     /**
-     * @return the class responsible for loading resources, by default, for compatibility uses {@link MFXResources}
+     * This should be used by implementations to define how a resource, identified by a given path, should be loaded.
      */
-    default Class<?> loader() {
-        return MFXResources.class;
-    }
+    URL asURL(String path);
 
     /**
      * Responsible for loading the stylesheet specified by {@link #path()}.
@@ -75,7 +72,7 @@ public interface Theme {
     default URL get() {
         if (Helper.isCached(this) && Helper.getCachedTheme(this) != null)
             return Helper.getCachedTheme(this);
-        return Helper.cacheTheme(this, loader().getResource(path()));
+        return Helper.cacheTheme(this, asURL(path()));
     }
 
     /**

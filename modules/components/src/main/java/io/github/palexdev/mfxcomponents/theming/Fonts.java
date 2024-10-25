@@ -18,7 +18,10 @@
 
 package io.github.palexdev.mfxcomponents.theming;
 
+import java.net.URL;
+
 import io.github.palexdev.mfxcomponents.theming.base.Theme;
+import io.github.palexdev.mfxresources.MFXResources;
 
 /**
  * Enumeration of all the font stylesheets offered by MaterialFX. Implements {@link Theme}.
@@ -37,5 +40,10 @@ public enum Fonts implements Theme {
     @Override
     public String path() {
         return path;
+    }
+
+    @Override
+    public URL asURL(String path) {
+        return MFXResources.loadURL(path);
     }
 }
