@@ -18,6 +18,11 @@
 
 package io.github.palexdev.mfxcomponents.theming.base;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 import io.github.palexdev.mfxcomponents.theming.Deployer;
 import io.github.palexdev.mfxcomponents.theming.UserAgentBuilder;
 import io.github.palexdev.mfxresources.MFXResources;
@@ -25,17 +30,9 @@ import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Public API for all MaterialFX themes/stylesheets. Ideally every theme should have: a name that identifies it,
  * and the path at which it is located.
- * <p>
- * Very important is the load mechanism. This interface assumes that stylesheets reside in the MFXResources module, and
- * thus uses {@link MFXResources} to load them. Custom user themes must override {@link #get()}!
  * <p></p>
  * Until JavaFX adds support for Themes and multiple user agent stylesheets, this in combination with {@link UserAgentBuilder},
  * offers a workaround for it. I noticed JavaFX themes were correctly merged but were still missing something: assets.
@@ -64,17 +61,21 @@ public interface Theme {
     String path();
 
     /**
+     * @return the class responsible for loading resources, by default, for compatibility uses {@link MFXResources}
+     */
+    default Class<?> loader() {
+        return MFXResources.class;
+    }
+
+    /**
      * Responsible for loading the stylesheet specified by {@link #path()}.
-     * <p>
-     * This assumes that the theme comes from the MFXResources module and thus uses {@link MFXResources} to load it.
-     * Custom user themes must override this method!.
      * <p></p>
-     * Last but not least, themes loaded through this are automatically cached for faster subsequent loadings.
+     * Themes loaded through this are automatically cached for faster subsequent loadings.
      */
     default URL get() {
         if (Helper.isCached(this) && Helper.getCachedTheme(this) != null)
             return Helper.getCachedTheme(this);
-        return Helper.cacheTheme(this, MFXResources.loadURL(path()));
+        return Helper.cacheTheme(this, loader().getResource(path()));
     }
 
     /**
