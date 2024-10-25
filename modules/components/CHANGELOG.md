@@ -16,6 +16,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.2] - 25-10-2024
+
+### Changed
+
+- Theme: add method to specify the loading class for resources
+
+### Fixed
+
+- UserAgentBuilder: handle newlines and carriage returns for imports resolve
+
 ## [11.26.1] - 29-09-2024
 
 ### Changed
