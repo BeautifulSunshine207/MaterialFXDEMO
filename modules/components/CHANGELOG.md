@@ -16,6 +16,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.4] - 27-10-2024
+
+### Added
+
+- MFXPopup: added better hook for popup's showing state
+
 ## [11.26.3] - 25-10-2024
 
 ### Fixed
