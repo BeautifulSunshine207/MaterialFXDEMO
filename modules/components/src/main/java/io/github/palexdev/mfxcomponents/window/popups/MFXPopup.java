@@ -1,5 +1,9 @@
 package io.github.palexdev.mfxcomponents.window.popups;
 
+import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.Optional;
+
 import io.github.palexdev.mfxcomponents.controls.base.MFXStyleable;
 import io.github.palexdev.mfxcomponents.skins.MFXPopupSkin;
 import io.github.palexdev.mfxcomponents.skins.base.IMFXPopupSkin;
@@ -19,10 +23,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.stage.Window;
-
-import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Most generic type of popup. Extends {@link PopupControl} and implements {@link IMFXPopup}, makes use of:
@@ -265,6 +265,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getContent()}.
      */
+    @Override
     public Node getContent() {
         return base.getContent();
     }
@@ -272,6 +273,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#contentProperty()}.
      */
+    @Override
     public NodeProperty contentProperty() {
         return base.contentProperty();
     }
@@ -279,6 +281,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#setContent(Node)}.
      */
+    @Override
     public void setContent(Node content) {
         base.setContent(content);
     }
@@ -286,6 +289,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getContentBounds()}.
      */
+    @Override
     public Bounds getContentBounds() {
         return base.getContentBounds();
     }
@@ -293,6 +297,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#contentBoundsProperty()}.
      */
+    @Override
     public ReadOnlyObjectProperty<Bounds> contentBoundsProperty() {
         return base.contentBoundsProperty();
     }
@@ -323,6 +328,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#isAnimated()}.
      */
+    @Override
     public boolean isAnimated() {
         return base.isAnimated();
     }
@@ -330,6 +336,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#animatedProperty()}.
      */
+    @Override
     public BooleanProperty animatedProperty() {
         return base.animatedProperty();
     }
@@ -337,6 +344,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#setAnimated(boolean)}.
      */
+    @Override
     public void setAnimated(boolean animated) {
         base.setAnimated(animated);
     }
@@ -344,6 +352,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getOffset()}.
      */
+    @Override
     public Position getOffset() {
         return base.getOffset();
     }
@@ -351,13 +360,31 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#offsetProperty()}.
      */
+    @Override
     public PositionProperty offsetProperty() {
         return base.offsetProperty();
     }
 
     /**
+     * Delegates to {@link MFXPopupBase#getState()}.
+     */
+    @Override
+    public PopupWindowState getState() {
+        return base.getState();
+    }
+
+    /**
+     * Delegates to {@link MFXPopupBase#stateProperty()}.
+     */
+    @Override
+    public ReadOnlyObjectProperty<PopupWindowState> stateProperty() {
+        return base.stateProperty();
+    }
+
+    /**
      * Delegates to {@link MFXPopupBase#setOffset(Position)}.
      */
+    @Override
     public void setOffset(Position offset) {
         base.setOffset(offset);
     }
@@ -365,6 +392,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getStylesheets()}.
      */
+    @Override
     public ObservableList<String> getStylesheets() {
         return base.getStylesheets();
     }

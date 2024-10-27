@@ -1,15 +1,35 @@
+/*
+ * Copyright (C) 2024 Parisi Alessandro - alessandro.parisi406@gmail.com
+ * This file is part of MaterialFX (https://github.com/palexdev/MaterialFX)
+ *
+ * MaterialFX is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * MaterialFX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MaterialFX. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.palexdev.mfxcomponents.skins;
 
 import io.github.palexdev.mfxcomponents.skins.base.IMFXPopupSkin;
 import io.github.palexdev.mfxcomponents.window.popups.IMFXPopup;
 import io.github.palexdev.mfxcomponents.window.popups.MFXPopup;
 import io.github.palexdev.mfxcomponents.window.popups.MFXPopupRoot;
+import io.github.palexdev.mfxcomponents.window.popups.PopupWindowState;
 import io.github.palexdev.mfxeffects.animations.Animations;
 import io.github.palexdev.mfxeffects.animations.Animations.KeyFrames;
 import io.github.palexdev.mfxeffects.animations.Animations.TimelineBuilder;
 import io.github.palexdev.mfxeffects.animations.motion.M3Motion;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
+import javafx.beans.value.WritableValue;
 import javafx.geometry.Bounds;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
@@ -88,13 +108,16 @@ public class MFXPopupSkin<P extends IMFXPopup & Skinnable> implements Skin<P>, I
             root.setOpacity(1.0);
             scale.setX(1.0);
             scale.setY(1.0);
+            setState(PopupWindowState.SHOWN);
             return;
         }
         if (inAnimation == null) {
             inAnimation = TimelineBuilder.build()
+                .add(KeyFrames.of(0, e -> setState(PopupWindowState.SHOWING)))
                     .add(KeyFrames.of(inDuration, root.opacityProperty(), 1.0, curve))
                     .add(KeyFrames.of(inDuration, scale.xProperty(), 1.0, curve))
                     .add(KeyFrames.of(inDuration, scale.yProperty(), 1.0, curve))
+                .setOnFinished(e -> setState(PopupWindowState.SHOWN))
                     .getAnimation();
         }
         if (Animations.isPlaying(outAnimation)) outAnimation.stop();
@@ -116,14 +139,19 @@ public class MFXPopupSkin<P extends IMFXPopup & Skinnable> implements Skin<P>, I
     public void animateOut() {
         if (!popup.isAnimated()) {
             popup.close();
+            setState(PopupWindowState.CLOSED);
             return;
         }
         if (outAnimation == null) {
             outAnimation = TimelineBuilder.build()
+                .add(KeyFrames.of(0, e -> setState(PopupWindowState.CLOSING)))
                     .add(KeyFrames.of(outDuration, root.opacityProperty(), 0.0, curve))
                     .add(KeyFrames.of(outDuration, scale.xProperty(), outScaleX, curve))
                     .add(KeyFrames.of(outDuration, scale.yProperty(), outScaleY, curve))
-                    .setOnFinished(e -> popup.close())
+                .setOnFinished(e -> {
+                    setState(PopupWindowState.CLOSED);
+                    popup.close();
+                })
                     .getAnimation();
         }
         if (Animations.isPlaying(inAnimation)) inAnimation.stop();
@@ -154,6 +182,17 @@ public class MFXPopupSkin<P extends IMFXPopup & Skinnable> implements Skin<P>, I
     protected void rebuildAnimations() {
         inAnimation = null;
         outAnimation = null;
+    }
+
+    /**
+     * This method is responsible for updating the popup's {@link MFXPopup#stateProperty()}. Automatically called by
+     * {@link #animateIn()} and {@link #animateOut()} (also when animations are disabled!).
+     */
+    @SuppressWarnings("unchecked")
+    protected void setState(PopupWindowState newState) {
+        if (popup.stateProperty() instanceof WritableValue<?>) {
+            ((WritableValue<PopupWindowState>) popup.stateProperty()).setValue(newState);
+        }
     }
 
     //================================================================================

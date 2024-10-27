@@ -1,5 +1,10 @@
 package io.github.palexdev.mfxcomponents.window.popups;
 
+import java.lang.ref.WeakReference;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import io.github.palexdev.mfxcomponents.controls.base.MFXControl;
 import io.github.palexdev.mfxcomponents.controls.base.MFXLabeled;
 import io.github.palexdev.mfxcomponents.controls.base.MFXStyleable;
@@ -28,11 +33,6 @@ import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.stage.Window;
 import javafx.util.Duration;
-
-import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Specialized type of popup usually used to show short and concise hints on UI elements.
@@ -377,6 +377,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getContent()}.
      */
+    @Override
     public Node getContent() {
         return base.getContent();
     }
@@ -384,6 +385,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#contentProperty()}.
      */
+    @Override
     public NodeProperty contentProperty() {
         return base.contentProperty();
     }
@@ -391,13 +393,31 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#setContent(Node)}.
      */
+    @Override
     public void setContent(Node content) {
         base.setContent(content);
     }
 
     /**
+     * Delegates to {@link MFXPopupBase#getState()}.
+     */
+    @Override
+    public PopupWindowState getState() {
+        return base.getState();
+    }
+
+    /**
+     * Delegates to {@link MFXPopupBase#stateProperty()}.
+     */
+    @Override
+    public ReadOnlyObjectProperty<PopupWindowState> stateProperty() {
+        return base.stateProperty();
+    }
+
+    /**
      * Delegates to {@link MFXPopupBase#getContentBounds()}.
      */
+    @Override
     public Bounds getContentBounds() {
         return base.getContentBounds();
     }
@@ -405,6 +425,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#contentBoundsProperty()}.
      */
+    @Override
     public ReadOnlyObjectProperty<Bounds> contentBoundsProperty() {
         return base.contentBoundsProperty();
     }
@@ -435,6 +456,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#isAnimated()}.
      */
+    @Override
     public boolean isAnimated() {
         return base.isAnimated();
     }
@@ -442,6 +464,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#animatedProperty()}.
      */
+    @Override
     public BooleanProperty animatedProperty() {
         return base.animatedProperty();
     }
@@ -449,6 +472,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#setAnimated(boolean)}.
      */
+    @Override
     public void setAnimated(boolean animated) {
         base.setAnimated(animated);
     }
@@ -456,6 +480,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getOffset()}.
      */
+    @Override
     public Position getOffset() {
         return base.getOffset();
     }
@@ -463,6 +488,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#offsetProperty()}.
      */
+    @Override
     public PositionProperty offsetProperty() {
         return base.offsetProperty();
     }
@@ -470,6 +496,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#setOffset(Position)}.
      */
+    @Override
     public void setOffset(Position offset) {
         base.setOffset(offset);
     }
@@ -477,6 +504,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     /**
      * Delegates to {@link MFXPopupBase#getStylesheets()}.
      */
+    @Override
     public ObservableList<String> getStylesheets() {
         return base.getStylesheets();
     }

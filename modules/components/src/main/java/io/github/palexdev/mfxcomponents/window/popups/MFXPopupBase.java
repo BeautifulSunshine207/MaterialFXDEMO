@@ -1,5 +1,7 @@
 package io.github.palexdev.mfxcomponents.window.popups;
 
+import java.lang.ref.WeakReference;
+
 import io.github.palexdev.mfxcomponents.skins.base.IMFXPopupSkin;
 import io.github.palexdev.mfxcore.base.beans.Position;
 import io.github.palexdev.mfxcore.base.beans.Size;
@@ -14,8 +16,6 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-
-import java.lang.ref.WeakReference;
 
 /**
  * We fellow Java developers well know that this language doesn't support multiple inheritance (what a shame).
@@ -57,6 +57,7 @@ public class MFXPopupBase {
     private final ReadOnlyBooleanWrapper hover = new ReadOnlyBooleanWrapper(false);
     private final BooleanProperty animated = new SimpleBooleanProperty(true);
     private final PositionProperty offset = new PositionProperty(Position.origin());
+    private final ObjectProperty<PopupWindowState> state = new SimpleObjectProperty<>(PopupWindowState.CLOSED);
 
     private final ObservableList<String> stylesheets = FXCollections.observableArrayList();
 
@@ -239,6 +240,17 @@ public class MFXPopupBase {
 
     public void setOffset(Position offset) {
         this.offset.set(offset);
+    }
+
+    public PopupWindowState getState() {
+        return state.get();
+    }
+
+    /**
+     * Specifies the popup's showing state.
+     */
+    public ReadOnlyObjectProperty<PopupWindowState> stateProperty() {
+        return state;
     }
 
     /**

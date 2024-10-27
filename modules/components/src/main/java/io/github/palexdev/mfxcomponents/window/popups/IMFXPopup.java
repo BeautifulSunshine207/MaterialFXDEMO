@@ -28,6 +28,16 @@ public interface IMFXPopup extends MFXStyleable {
 
     void setContent(Node content);
 
+    PopupWindowState getState();
+
+    /**
+     * Specifies the popup's open/close state.
+     * <p>
+     * It's highly recommended to use this to listen to the showing state of the popup because JavaFX's properties
+     * may be slow to update due to MaterialFX implementation (popups can be animated).
+     */
+    ReadOnlyObjectProperty<PopupWindowState> stateProperty();
+
     Bounds getContentBounds();
 
     /**
