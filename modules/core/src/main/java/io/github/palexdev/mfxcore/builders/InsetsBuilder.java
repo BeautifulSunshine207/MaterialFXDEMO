@@ -19,54 +19,79 @@
 package io.github.palexdev.mfxcore.builders;
 
 import javafx.geometry.Insets;
+import javafx.scene.layout.CornerRadii;
 
 /**
  * Convenience class to build {@link Insets} objects.
  */
 public class InsetsBuilder {
+    //================================================================================
+    // Properties
+    //================================================================================
+    private Insets insets;
 
-	//================================================================================
-	// Constructors
-	//================================================================================
-	private InsetsBuilder() {
-	}
+    //================================================================================
+    // Constructors
+    //================================================================================
+    public InsetsBuilder() {
+        this(Insets.EMPTY);
+    }
 
-	//================================================================================
-	// Static Methods
-	//================================================================================
-	public static Insets all(double topRightBottomLeft) {
-		return new Insets(topRightBottomLeft);
-	}
+    public InsetsBuilder(Insets insets) {
+        this.insets = insets;
+    }
 
-	public static Insets none() {
-		return Insets.EMPTY;
-	}
+    //================================================================================
+    // Static Methods
+    //================================================================================
+    public static InsetsBuilder uniform(double all) {
+        return new InsetsBuilder(new Insets(all, all, all, all));
+    }
 
-	public static Insets top(double top) {
-		return new Insets(top, 0, 0, 0);
-	}
+    public static InsetsBuilder top(double top) {
+        return new InsetsBuilder(new Insets(top, 0, 0, 0));
+    }
 
-	public static Insets right(double right) {
-		return new Insets(0, right, 0, 0);
-	}
+    public static InsetsBuilder right(double right) {
+        return new InsetsBuilder(new Insets(0, right, 0, 0));
+    }
 
-	public static Insets bottom(double bottom) {
-		return new Insets(0, 0, bottom, 0);
-	}
+    public static InsetsBuilder bottom(double bottom) {
+        return new InsetsBuilder(new Insets(0, 0, bottom, 0));
+    }
 
-	public static Insets left(double left) {
-		return new Insets(0, 0, 0, left);
-	}
+    public static InsetsBuilder left(double left) {
+        return new InsetsBuilder(new Insets(0, 0, 0, left));
+    }
 
-	public static Insets of(double top, double right) {
-		return new Insets(top, right, 0, 0);
-	}
+    //================================================================================
+    // Methods
+    //================================================================================
+    public InsetsBuilder withTop(double top) {
+        insets = new Insets(top, insets.getRight(), insets.getBottom(), insets.getLeft());
+        return this;
+    }
 
-	public static Insets of(double top, double right, double bottom) {
-		return new Insets(top, right, bottom, 0);
-	}
+    public InsetsBuilder withRight(double right) {
+        insets = new Insets(insets.getTop(), right, insets.getBottom(), insets.getLeft());
+        return this;
+    }
 
-	public static Insets of(double top, double right, double bottom, double left) {
-		return new Insets(top, right, bottom, left);
-	}
+    public InsetsBuilder withBottom(double bottom) {
+        return new InsetsBuilder(new Insets(0, 0, bottom, 0));
+    }
+
+    public InsetsBuilder withLeft(double left) {
+        insets = new Insets(insets.getTop(), insets.getRight(), insets.getBottom(), left);
+        return this;
+    }
+
+    public Insets get() {
+        return insets;
+    }
+
+    public CornerRadii toRadius(boolean asPercent) {
+        return new CornerRadii(insets.getTop(), insets.getRight(), insets.getBottom(), insets.getLeft(), asPercent);
+    }
 }
+
