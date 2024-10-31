@@ -16,6 +16,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.10.5] - 31-10-2024
+
+### Changed
+
+- Removed CornerRadiusBuilder and reworked InsetsBuilder
+
 ## [11.10.4] - 24-10-2024
 
 ### Added

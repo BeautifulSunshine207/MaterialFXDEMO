@@ -44,6 +44,14 @@ public class InsetsBuilder {
     //================================================================================
     // Static Methods
     //================================================================================
+    public static InsetsBuilder build() {
+        return new InsetsBuilder();
+    }
+
+    public static Insets of(double top, double right, double bottom, double left) {
+        return new Insets(top, right, bottom, left);
+    }
+
     public static InsetsBuilder uniform(double all) {
         return new InsetsBuilder(new Insets(all, all, all, all));
     }
@@ -77,12 +85,22 @@ public class InsetsBuilder {
         return this;
     }
 
+    public InsetsBuilder withVertical(double topBottom) {
+        insets = new Insets(topBottom, insets.getRight(), topBottom, insets.getLeft());
+        return this;
+    }
+
     public InsetsBuilder withBottom(double bottom) {
         return new InsetsBuilder(new Insets(0, 0, bottom, 0));
     }
 
     public InsetsBuilder withLeft(double left) {
         insets = new Insets(insets.getTop(), insets.getRight(), insets.getBottom(), left);
+        return this;
+    }
+
+    public InsetsBuilder withHorizontal(double leftRight) {
+        insets = new Insets(insets.getTop(), leftRight, insets.getBottom(), leftRight);
         return this;
     }
 

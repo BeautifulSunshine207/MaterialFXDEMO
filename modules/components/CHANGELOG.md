@@ -16,6 +16,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.5] - 31-10-2024
+
+### Added
+
+- MFXProgressIndicator: allow to disable determinate progress animations
+
+### Changed
+
+- MFXCircularProgressIndicatorSkin: since the arcMultiplier depends on the layout, it should be a property, and the
+  progress should be adjusted every time it changes
+
+### Fixed
+
+- MFXProgressIndicator skins: take into account progress not starting as indeterminate
+
 ## [11.26.4] - 27-10-2024
 
 ### Added

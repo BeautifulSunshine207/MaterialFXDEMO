@@ -40,12 +40,12 @@ public class LayoutUtils {
 
 		Insets snappedMargin = margin == null ? Insets.EMPTY : margin;
 		if (snapToPixel && snappedMargin != Insets.EMPTY) {
-			snappedMargin = InsetsBuilder.of(
-				parent.snapSpaceY(snappedMargin.getTop()),
-				parent.snapSpaceX(snappedMargin.getRight()),
-				parent.snapSpaceY(snappedMargin.getBottom()),
-				parent.snapSpaceX(snappedMargin.getLeft())
-			);
+			snappedMargin = InsetsBuilder.build()
+				.withTop(parent.snapSpaceY(snappedMargin.getTop()))
+				.withRight(parent.snapSpaceX(snappedMargin.getRight()))
+				.withBottom(parent.snapSpaceY(snappedMargin.getBottom()))
+				.withLeft(parent.snapSpaceX(snappedMargin.getLeft()))
+				.get();
 		}
 
 		double xPosition = computeXPosition(parent, child, areaX, areaWidth, snappedMargin, false, hAlignment, snapToPixel, computeSizes);
@@ -56,12 +56,12 @@ public class LayoutUtils {
 	public static double computeXPosition(Region parent, Node child, double areaX, double areaWidth, Insets margin, boolean snapMargin, HPos hAlignment, boolean snapToPixel, boolean computeSizes) {
 		Insets snappedMargin = margin == null ? Insets.EMPTY : margin;
 		if (snapMargin && snappedMargin != Insets.EMPTY) {
-			snappedMargin = InsetsBuilder.of(
-				parent.snapSpaceY(snappedMargin.getTop()),
-				parent.snapSpaceX(snappedMargin.getRight()),
-				parent.snapSpaceY(snappedMargin.getBottom()),
-				parent.snapSpaceX(snappedMargin.getLeft())
-			);
+			snappedMargin = InsetsBuilder.build()
+				.withTop(parent.snapSpaceY(snappedMargin.getTop()))
+				.withRight(parent.snapSpaceX(snappedMargin.getRight()))
+				.withBottom(parent.snapSpaceY(snappedMargin.getBottom()))
+				.withLeft(parent.snapSpaceX(snappedMargin.getLeft()))
+				.get();
 		}
 
 		final double leftMargin = snappedMargin.getLeft();
@@ -74,12 +74,12 @@ public class LayoutUtils {
 	public static double computeYPosition(Region parent, Node child, double areaY, double areaHeight, double areaBaselineOffset, Insets margin, boolean snapMargin, VPos vAlignment, boolean snapToPixel, boolean computeSizes) {
 		Insets snappedMargin = margin == null ? Insets.EMPTY : margin;
 		if (snapMargin) {
-			snappedMargin = InsetsBuilder.of(
-				parent.snapSpaceY(snappedMargin.getTop()),
-				parent.snapSpaceX(snappedMargin.getRight()),
-				parent.snapSpaceY(snappedMargin.getBottom()),
-				parent.snapSpaceX(snappedMargin.getLeft())
-			);
+			snappedMargin = InsetsBuilder.build()
+				.withTop(parent.snapSpaceY(snappedMargin.getTop()))
+				.withRight(parent.snapSpaceX(snappedMargin.getRight()))
+				.withBottom(parent.snapSpaceY(snappedMargin.getBottom()))
+				.withLeft(parent.snapSpaceX(snappedMargin.getLeft()))
+				.get();
 		}
 
 		final double topMargin = snappedMargin.getTop();

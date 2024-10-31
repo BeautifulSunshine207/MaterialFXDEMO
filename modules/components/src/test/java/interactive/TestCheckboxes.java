@@ -18,6 +18,10 @@
 
 package interactive;
 
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.IntStream;
+
 import io.github.palexdev.mfxcomponents.controls.checkbox.MFXCheckbox;
 import io.github.palexdev.mfxcomponents.controls.checkbox.TriState;
 import io.github.palexdev.mfxcomponents.theming.MaterialThemes;
@@ -36,10 +40,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -289,7 +289,7 @@ public class TestCheckboxes {
     private HBox setupStage() {
         HBox box = new HBox(20);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(InsetsBuilder.all(5));
+        box.setPadding(InsetsBuilder.uniform(5).get());
         try {
             Scene scene = new Scene(box, 400, 200);
             MaterialThemes.PURPLE_LIGHT.applyOn(scene);

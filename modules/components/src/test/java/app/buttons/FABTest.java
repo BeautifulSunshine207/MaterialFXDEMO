@@ -18,6 +18,8 @@
 
 package app.buttons;
 
+import java.util.function.Supplier;
+
 import io.github.palexdev.mfxcomponents.controls.buttons.MFXButton;
 import io.github.palexdev.mfxcomponents.controls.fab.MFXFab;
 import io.github.palexdev.mfxcomponents.controls.fab.MFXFabBase;
@@ -48,8 +50,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.scenicview.ScenicView;
-
-import java.util.function.Supplier;
 
 import static io.github.palexdev.mfxcomponents.theming.enums.FABVariants.*;
 
@@ -97,7 +97,11 @@ public class FABTest extends Application {
         String theme = MFXResources.load("themes/material/md-purple-" + variant + ".css");
         //String theme = MFXThemeManager.LIGHT.load();
         pane.getStylesheets().add(theme);
-        pane.setPadding(InsetsBuilder.of(15, 5, 15, 5));
+        pane.setPadding(InsetsBuilder.build()
+            .withVertical(15)
+            .withHorizontal(5)
+            .get()
+        );
 
         ScrollPane sp = new ScrollPane(pane);
         sp.setFitToWidth(true);

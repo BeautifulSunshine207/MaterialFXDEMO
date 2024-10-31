@@ -27,7 +27,7 @@ public class PopupTest extends Application {
         anchors.getItems().removeAll(Pos.BASELINE_CENTER, Pos.BASELINE_LEFT, Pos.BASELINE_RIGHT);
         anchors.getSelectionModel().select(Pos.BOTTOM_CENTER);
         StackPane.setAlignment(anchors, Pos.TOP_CENTER);
-        StackPane.setMargin(anchors, InsetsBuilder.top(20));
+        StackPane.setMargin(anchors, InsetsBuilder.top(20).get());
 
         MFXButton button = new MFXButton("Show Popup").filled();
 

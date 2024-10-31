@@ -18,6 +18,11 @@
 
 package app;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+
 import app.others.ui.*;
 import fr.brouillard.oss.cssfx.CSSFX;
 import io.github.palexdev.mfxcomponents.controls.buttons.MFXButton;
@@ -56,11 +61,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.scenicview.ScenicView;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 public class Showcase extends Application implements MultipleViewApp<String> {
     //================================================================================
@@ -113,7 +113,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
             .applyOn(sp);
 
         Size ws = UIUtils.getWindowSize();
-		Scene scene = new Scene(new StackPane(sp), ws.getWidth(), ws.getHeight());
+        Scene scene = new Scene(new StackPane(sp), ws.getWidth(), ws.getHeight());
         loadStyleSheet(scene);
         stage.setScene(scene);
         stage.setTitle("Buttons Playground");
@@ -124,7 +124,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
             String iconDesc = themeVariant.get().equals("light") ? "fas-sun" : "fas-moon";
             themeVariant.set(newVariant);
             loadStyleSheet(scene);
-			themeSwitcher.setIcon(new MFXFontIcon(iconDesc));
+            themeSwitcher.setIcon(new MFXFontIcon(iconDesc));
         });
         sp.getChildren().add(themeSwitcher);
 
@@ -186,7 +186,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
     private Node fabView() {
         VBox box = new VBox(50);
         box.setAlignment(Pos.TOP_CENTER);
-        box.setPadding(InsetsBuilder.all(10));
+        box.setPadding(InsetsBuilder.uniform(10).get());
         Node def = createFabsView("Floating Action Buttons", (s, i) -> new MFXFab(i));
         Node surf = createFabsView("Floating Action Buttons (Surface)", (s, i) -> new MFXFab(i).setVariants(FABVariants.SURFACE));
         Node sdy = createFabsView("Floating Action Buttons (Secondary)", (s, i) -> new MFXFab(i).setVariants(FABVariants.SECONDARY));
@@ -204,7 +204,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         };
         VBox box = new VBox(50);
         box.setAlignment(Pos.TOP_CENTER);
-        box.setPadding(InsetsBuilder.all(10));
+        box.setPadding(InsetsBuilder.uniform(10).get());
         Node def = createExtendedFabView("Extended FABs", generator);
         Node surf = createExtendedFabView("Extended FABs (Surface)", generator.andThen(f -> f.setVariants(FABVariants.SURFACE)));
         Node sdy = createExtendedFabView("Extended FABs (Secondary)", generator.andThen(f -> f.setVariants(FABVariants.SECONDARY)));
@@ -222,7 +222,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
 
         VBox box = new VBox(50);
         box.setAlignment(Pos.TOP_CENTER);
-        box.setPadding(InsetsBuilder.all(10));
+        box.setPadding(InsetsBuilder.uniform(10).get());
         Node standard = createIconButtonsView("Standard IconButtons", generator);
         Node filled = createIconButtonsView("Filled IconButtons", generator.andThen(b -> b.addVariants(IconButtonVariants.FILLED)));
         Node filledTonal = createIconButtonsView("Filled Tonal IconButtons", generator.andThen(b -> b.addVariants(IconButtonVariants.FILLED_TONAL)));
@@ -253,8 +253,8 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         MFXButton btn2 = generator.apply("Hovered", null);
         MFXButton btn3 = generator.apply("Focused", null);
         MFXButton btn4 = generator.apply("Pressed", null);
-		MFXButton btn5 = generator.apply("Icon Left", FontAwesomeSolid.random());
-		MFXButton btn6 = generator.apply("Icon Right", FontAwesomeSolid.random());
+        MFXButton btn5 = generator.apply("Icon Left", FontAwesomeSolid.random());
+        MFXButton btn6 = generator.apply("Icon Right", FontAwesomeSolid.random());
         btn6.setContentDisplay(ContentDisplay.RIGHT);
 
         btn1.setDisable(true);
@@ -277,15 +277,15 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         TitledFlowPane defTfp = new TitledFlowPane(title);
         defTfp.setMaxWidth(length);
 
-		MFXFab btn0 = generator.apply("Enabled", FontAwesomeSolid.random());
-		MFXFab btn1 = generator.apply("Disabled", FontAwesomeSolid.random());
-		MFXFab btn2 = generator.apply("Hovered", FontAwesomeSolid.random());
-		MFXFab btn3 = generator.apply("Focused", FontAwesomeSolid.random());
-		MFXFab btn4 = generator.apply("Pressed", FontAwesomeSolid.random());
-		MFXFab btn5 = generator.apply("Small", FontAwesomeSolid.random());
-		MFXFab btn6 = generator.apply("Large", FontAwesomeSolid.random());
-		MFXFab btn7 = generator.apply("Large Lowered", FontAwesomeSolid.random());
-		MFXFab btn8 = generator.apply("Lowered Large", FontAwesomeSolid.random());
+        MFXFab btn0 = generator.apply("Enabled", FontAwesomeSolid.random());
+        MFXFab btn1 = generator.apply("Disabled", FontAwesomeSolid.random());
+        MFXFab btn2 = generator.apply("Hovered", FontAwesomeSolid.random());
+        MFXFab btn3 = generator.apply("Focused", FontAwesomeSolid.random());
+        MFXFab btn4 = generator.apply("Pressed", FontAwesomeSolid.random());
+        MFXFab btn5 = generator.apply("Small", FontAwesomeSolid.random());
+        MFXFab btn6 = generator.apply("Large", FontAwesomeSolid.random());
+        MFXFab btn7 = generator.apply("Large Lowered", FontAwesomeSolid.random());
+        MFXFab btn8 = generator.apply("Lowered Large", FontAwesomeSolid.random());
 
         btn1.setDisable(true);
         btn2.setMouseTransparent(true);
@@ -300,7 +300,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         btn8.addVariants(FABVariants.LOWERED, FABVariants.LARGE);
 
         btn8.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-			btn8.setIcon(FontAwesomeSolid.random());
+            btn8.setIcon(FontAwesomeSolid.random());
             e.consume();
         });
 
@@ -316,15 +316,15 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         TitledFlowPane defTfp = new TitledFlowPane(title);
         defTfp.setMaxWidth(length);
 
-		MFXFab btn0 = generator.apply("Enabled", FontAwesomeSolid.random());
-		MFXFab btn1 = generator.apply("Disabled", FontAwesomeSolid.random());
-		MFXFab btn2 = generator.apply("Hovered", FontAwesomeSolid.random());
-		MFXFab btn3 = generator.apply("Focused", FontAwesomeSolid.random());
-		MFXFab btn4 = generator.apply("Pressed", FontAwesomeSolid.random());
-		MFXFab btn5 = generator.apply("Text Only", FontAwesomeSolid.random());
-		MFXFab btn6 = generator.apply("Expandable", FontAwesomeSolid.random());
-		MFXFab btn7 = generator.apply("Change Icon", FontAwesomeSolid.random());
-		MFXFab btn8 = generator.apply("Lowered Text Only", FontAwesomeSolid.random());
+        MFXFab btn0 = generator.apply("Enabled", FontAwesomeSolid.random());
+        MFXFab btn1 = generator.apply("Disabled", FontAwesomeSolid.random());
+        MFXFab btn2 = generator.apply("Hovered", FontAwesomeSolid.random());
+        MFXFab btn3 = generator.apply("Focused", FontAwesomeSolid.random());
+        MFXFab btn4 = generator.apply("Pressed", FontAwesomeSolid.random());
+        MFXFab btn5 = generator.apply("Text Only", FontAwesomeSolid.random());
+        MFXFab btn6 = generator.apply("Expandable", FontAwesomeSolid.random());
+        MFXFab btn7 = generator.apply("Change Icon", FontAwesomeSolid.random());
+        MFXFab btn8 = generator.apply("Lowered Text Only", FontAwesomeSolid.random());
 
         btn1.setDisable(true);
         btn2.setMouseTransparent(true);
@@ -342,7 +342,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
 
         btn6.setExtended(false);
         btn6.setOnAction(e -> btn6.setExtended(!btn6.isExtended()));
-		btn7.setOnAction(e -> btn7.setIcon(FontAwesomeSolid.random()));
+        btn7.setOnAction(e -> btn7.setIcon(FontAwesomeSolid.random()));
 
         defTfp.add(btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8);
         return defTfp;
@@ -357,11 +357,11 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         defTfp.setMaxWidth(length);
 
         // As toggles
-		MFXIconButton btn0 = generator.apply(false, FontAwesomeSolid.random());
-		MFXIconButton btn1 = generator.apply(false, FontAwesomeSolid.random());
-		MFXIconButton btn2 = generator.apply(false, FontAwesomeSolid.random());
-		MFXIconButton btn3 = generator.apply(false, FontAwesomeSolid.random());
-		MFXIconButton btn4 = generator.apply(false, FontAwesomeSolid.random());
+        MFXIconButton btn0 = generator.apply(false, FontAwesomeSolid.random());
+        MFXIconButton btn1 = generator.apply(false, FontAwesomeSolid.random());
+        MFXIconButton btn2 = generator.apply(false, FontAwesomeSolid.random());
+        MFXIconButton btn3 = generator.apply(false, FontAwesomeSolid.random());
+        MFXIconButton btn4 = generator.apply(false, FontAwesomeSolid.random());
         btn1.setMouseTransparent(true);
         btn1.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), true);
         btn2.setMouseTransparent(true);
@@ -371,11 +371,11 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         btn4.setDisable(true);
 
         // Standard
-		MFXIconButton btn5 = generator.apply(true, FontAwesomeSolid.random());
-		MFXIconButton btn6 = generator.apply(true, FontAwesomeSolid.random());
-		MFXIconButton btn7 = generator.apply(true, FontAwesomeSolid.random());
-		MFXIconButton btn8 = generator.apply(true, FontAwesomeSolid.random());
-		MFXIconButton btn9 = generator.apply(true, FontAwesomeSolid.random());
+        MFXIconButton btn5 = generator.apply(true, FontAwesomeSolid.random());
+        MFXIconButton btn6 = generator.apply(true, FontAwesomeSolid.random());
+        MFXIconButton btn7 = generator.apply(true, FontAwesomeSolid.random());
+        MFXIconButton btn8 = generator.apply(true, FontAwesomeSolid.random());
+        MFXIconButton btn9 = generator.apply(true, FontAwesomeSolid.random());
         btn6.setMouseTransparent(true);
         btn6.pseudoClassStateChanged(PseudoClass.getPseudoClass("hover"), true);
         btn7.setMouseTransparent(true);
@@ -407,12 +407,12 @@ public class Showcase extends Application implements MultipleViewApp<String> {
 
         MFXSegmentedButton wIcons = new MFXSegmentedButton();
         for (int i = 0; i < 5; i++) {
-			wIcons.addSegment(FontAwesomeSolid.random(), "Segment " + i);
+            wIcons.addSegment(FontAwesomeSolid.random(), "Segment " + i);
         }
 
         MFXSegmentedButton wDisabled = new MFXSegmentedButton();
         for (int i = 0; i < 5; i++) {
-			wDisabled.addSegment(FontAwesomeSolid.random(), "Segment " + i);
+            wDisabled.addSegment(FontAwesomeSolid.random(), "Segment " + i);
         }
         wDisabled.getSegments().get(1).setDisable(true);
         wDisabled.getSegments().get(2).setDisable(true);
@@ -425,7 +425,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         TitledFlowPane defTP = new TitledFlowPane(title);
         defTP.setMaxWidth(350);
         List<Supplier<MFXCheckbox>> generators = new ArrayList<>(List.of(
-                MFXCheckbox::new,
+            MFXCheckbox::new,
             () -> {
                 MFXCheckbox c = new MFXCheckbox();
                 c.setDisable(true);
@@ -460,7 +460,7 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         for (Supplier<MFXCheckbox> g : generators) {
             MFXCheckbox c = g.get();
             c.setAllowIndeterminate(true);
-			c.setState(TriState.INDETERMINATE);
+            c.setState(TriState.INDETERMINATE);
             defTP.add(c);
         }
 

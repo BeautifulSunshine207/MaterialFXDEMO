@@ -18,6 +18,8 @@
 
 package interactive;
 
+import java.util.concurrent.TimeoutException;
+
 import io.github.palexdev.mfxcomponents.controls.buttons.MFXButton;
 import io.github.palexdev.mfxcomponents.controls.fab.MFXFab;
 import io.github.palexdev.mfxcomponents.theming.MaterialThemes;
@@ -33,8 +35,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -90,7 +90,7 @@ public class TestInitSize {
         assertEquals(96, fab.getLayoutBounds().getWidth());
         assertEquals(96, fab.getLayoutBounds().getHeight());
 
-        robot.interact(() -> fab.setPrefSize(70, 70));
+        robot.interact(() -> fab.setMinSize(70, 70));
         assertEquals(70, fab.getLayoutBounds().getWidth());
         assertEquals(70, fab.getLayoutBounds().getHeight());
     }
