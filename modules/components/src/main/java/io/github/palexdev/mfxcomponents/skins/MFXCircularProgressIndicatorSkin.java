@@ -32,6 +32,8 @@ import io.github.palexdev.mfxeffects.animations.motion.M3Motion;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
@@ -72,7 +74,7 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
     private final Arc rArc;
     private final Node lClip;
     private final Node rClip;
-    protected double arcMultiplier = 1.0;
+    protected final DoubleProperty arcMultiplier = new SimpleDoubleProperty(1.0);
 
     // Animations
     protected static Duration LINEAR_ROTATE_DURATION = Duration.millis(1568.0);
@@ -188,19 +190,24 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
                     if (iAnimation != null) {
                         iAnimation.stop();
                         iAnimation = null;
+                    }
+                    if (rArc.getClip() != null || lArc.getClip() != null) {
                         indicator.setRotate(0.0);
                         container.setRotate(0.0);
                         rArc.setStartAngle(0.0);
                         rArc.setLength(0.0);
                         rArc.setClip(null);
-                        lArc.setStartAngle(90.0 + BASE_ARCS_GAP * arcMultiplier);
-                        lArc.setLength(360.0 - BASE_ARCS_GAP * 2 * arcMultiplier);
+                        lArc.setStartAngle(90.0 + BASE_ARCS_GAP * arcMultiplier.get());
+                        lArc.setLength(360.0 - BASE_ARCS_GAP * 2 * arcMultiplier.get());
                         lArc.setClip(null);
                     }
                     PseudoClasses.INDETERMINATE.setOn(indicator, false);
                     adjustProgress();
                 })
-                .executeNow()
+                .executeNow(),
+            onInvalidated(arcMultiplier)
+                .condition(m -> !indicator.isIndeterminate())
+                .then(m -> adjustProgress())
         );
     }
 
@@ -220,16 +227,24 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
         double progress = indicator.getProgress();
         double arcLen = progress == 0.0 ? 0 : Math.max(1.0, 360.0 * progress);
         double arcDeg = progress == 0.0 ? 0 : 90.0 - arcLen;
-        double trackLen = progress == 0.0 ? 360.0 : 360.0 - BASE_ARCS_GAP * 2 * arcMultiplier - arcLen;
+        double trackLen = progress == 0.0 ? 360.0 : 360.0 - BASE_ARCS_GAP * 2 * arcMultiplier.get() - arcLen;
 
         if (Animations.isPlaying(pAnimation)) pAnimation.stop();
-        pAnimation = TimelineBuilder.build()
-            .add(KeyFrames.of(Duration.ONE, lArc.visibleProperty(), trackLen > 0))
-            .add(KeyFrames.of(DETERMINATE_DURATION, rArc.lengthProperty(), arcLen, DETERMINATE_CURVE))
-            .add(KeyFrames.of(DETERMINATE_DURATION, rArc.startAngleProperty(), arcDeg, DETERMINATE_CURVE))
-            .add(KeyFrames.of(DETERMINATE_DURATION, lArc.lengthProperty(), trackLen, DETERMINATE_CURVE))
-            .getAnimation();
-        pAnimation.play();
+        if (indicator.isAnimated()) {
+            pAnimation = TimelineBuilder.build()
+                .add(KeyFrames.of(Duration.ONE, lArc.visibleProperty(), trackLen > 0))
+                .add(KeyFrames.of(DETERMINATE_DURATION, rArc.lengthProperty(), arcLen, DETERMINATE_CURVE))
+                .add(KeyFrames.of(DETERMINATE_DURATION, rArc.startAngleProperty(), arcDeg, DETERMINATE_CURVE))
+                .add(KeyFrames.of(DETERMINATE_DURATION, lArc.lengthProperty(), trackLen, DETERMINATE_CURVE))
+                .getAnimation();
+            pAnimation.play();
+        } else {
+            lArc.setVisible(trackLen > 0);
+            rArc.setLength(arcLen);
+            rArc.setStartAngle(arcDeg);
+            lArc.setLength(trackLen);
+        }
+
     }
 
     /**
@@ -330,7 +345,7 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
 
     @Override
     protected void layoutChildren(double x, double y, double w, double h) {
-        arcMultiplier = 100.0 / (Math.max(w, h) / 2);
+        arcMultiplier.set(100.0 / (Math.max(w, h) / 2));
         container.resizeRelocate(x, y, w, h);
     }
 

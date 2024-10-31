@@ -212,6 +212,8 @@ public class MFXLinearProgressIndicatorSkin extends MFXSkinBase<MFXProgressIndic
                         animateIndeterminate();
                         return;
                     }
+                    mBar.setTranslateX(-indicator.getWidth());
+                    mScale.setX(1);
                     adjustProgress(false);
                 })
         );
@@ -235,7 +237,7 @@ public class MFXLinearProgressIndicatorSkin extends MFXSkinBase<MFXProgressIndic
         double barMinX = barMaxX - w;
 
         if (Animations.isPlaying(pAnimation)) pAnimation.stop();
-        if (animated) {
+        if (animated && indicator.isAnimated()) {
             pAnimation = TimelineBuilder.build()
                 .add(KeyFrames.of(DETERMINATE_DURATION, mBar.translateXProperty(), barMinX, DETERMINATE_CURVE))
                 .getAnimation();
