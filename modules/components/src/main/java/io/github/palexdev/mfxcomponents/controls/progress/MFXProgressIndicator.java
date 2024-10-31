@@ -18,6 +18,9 @@
 
 package io.github.palexdev.mfxcomponents.controls.progress;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.github.palexdev.mfxcomponents.controls.base.MFXControl;
 import io.github.palexdev.mfxcomponents.controls.base.MFXSkinBase;
 import io.github.palexdev.mfxcomponents.skins.MFXCircularProgressIndicatorSkin;
@@ -37,9 +40,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.css.StyleablePropertyFactory;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Custom implementation of a progress indicator according to the Material Design 3 guidelines. Extends {@link MFXControl}
@@ -120,6 +120,13 @@ public class MFXProgressIndicator extends MFXControl<BehaviorBase<MFXProgressInd
     //================================================================================
     // Styleable Properties
     //================================================================================
+    private final StyleableBooleanProperty animated = new StyleableBooleanProperty(
+        StyleableProperties.ANIMATED,
+        this,
+        "animated",
+        true
+    );
+
     private final StyleableObjectProperty<ProgressDisplayMode> displayMode = new StyleableObjectProperty<>(
         StyleableProperties.DISPLAY_MODE,
         this,
@@ -150,6 +157,23 @@ public class MFXProgressIndicator extends MFXControl<BehaviorBase<MFXProgressInd
         "clipRadius",
         6.0
     );
+
+    public boolean isAnimated() {
+        return animated.get();
+    }
+
+    /**
+     * Specifies whether to enable the determinate progress animation.
+     * <p>
+     * This is not just for user preference, but also allows you to use a custom animation to set the progress.
+     */
+    public StyleableBooleanProperty animatedProperty() {
+        return animated;
+    }
+
+    public void setAnimated(boolean animated) {
+        this.animated.set(animated);
+    }
 
     public ProgressDisplayMode getDisplayMode() {
         return displayMode.get();
@@ -217,6 +241,13 @@ public class MFXProgressIndicator extends MFXControl<BehaviorBase<MFXProgressInd
         private static final StyleablePropertyFactory<MFXProgressIndicator> FACTORY = new StyleablePropertyFactory<>(Control.getClassCssMetaData());
         private static final List<CssMetaData<? extends Styleable, ?>> cssMetaDataList;
 
+        private static final CssMetaData<MFXProgressIndicator, Boolean> ANIMATED =
+            FACTORY.createBooleanCssMetaData(
+                "-mfx-animated",
+                MFXProgressIndicator::animatedProperty,
+                true
+            );
+
         private static final CssMetaData<MFXProgressIndicator, ProgressDisplayMode> DISPLAY_MODE =
             FACTORY.createEnumCssMetaData(
                 ProgressDisplayMode.class,
@@ -242,7 +273,7 @@ public class MFXProgressIndicator extends MFXControl<BehaviorBase<MFXProgressInd
         static {
             cssMetaDataList = StyleUtils.cssMetaDataList(
                 Control.getClassCssMetaData(),
-                DISPLAY_MODE, SHOW_STOP_POINT, CLIP_RADIUS
+                ANIMATED, DISPLAY_MODE, SHOW_STOP_POINT, CLIP_RADIUS
             );
         }
     }
