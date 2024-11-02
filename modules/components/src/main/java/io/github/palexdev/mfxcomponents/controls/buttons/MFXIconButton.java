@@ -1,5 +1,9 @@
 package io.github.palexdev.mfxcomponents.controls.buttons;
 
+import java.util.EnumSet;
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.github.palexdev.mfxcomponents.behaviors.MFXIconButtonBehavior;
 import io.github.palexdev.mfxcomponents.controls.base.MFXSelectable;
 import io.github.palexdev.mfxcomponents.controls.base.MFXSkinBase;
@@ -17,12 +21,6 @@ import io.github.palexdev.mfxresources.fonts.MFXIconWrapper;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.css.StyleablePropertyFactory;
-import javafx.scene.text.Font;
-
-import java.util.EnumSet;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Custom and particular implementation of a button which extends {@link MFXSelectable}, has its own skin
@@ -300,15 +298,6 @@ public class MFXIconButton extends MFXSelectable<MFXIconButtonBehavior> implemen
      */
     public IconProperty setIconProvider(IconProvider provider) {
         return icon.setProvider(provider);
-    }
-
-    /**
-     * Delegate of {@link IconProperty#setProvider(Font, Function)}.
-     *
-     * @see MFXFontIcon#setIconsProvider(Font, Function)
-     */
-    public IconProperty setIconProvider(Font font, Function<String, Character> converter) {
-        return icon.setProvider(font, converter);
     }
 
     /**

@@ -18,6 +18,9 @@
 
 package io.github.palexdev.mfxcomponents.controls.fab;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 import io.github.palexdev.mfxcomponents.behaviors.MFXButtonBehaviorBase;
 import io.github.palexdev.mfxcomponents.controls.base.MFXButtonBase;
 import io.github.palexdev.mfxcomponents.controls.base.MFXSkinBase;
@@ -34,12 +37,7 @@ import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.css.StyleablePropertyFactory;
 import javafx.geometry.Pos;
-import javafx.scene.text.Font;
 import javafx.scene.transform.Scale;
-
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Extension of {@link MFXButtonBase} and base class to implement the Floating Action Buttons shown in the MD3 guidelines.
@@ -284,15 +282,6 @@ public class MFXFabBase extends MFXButtonBase<MFXButtonBehaviorBase<MFXFabBase>>
 	 */
 	public IconProperty setIconProvider(IconProvider provider) {
 		return icon.setProvider(provider);
-	}
-
-	/**
-	 * Delegate of {@link IconProperty#setProvider(Font, Function)}.
-	 *
-	 * @see MFXFontIcon#setIconsProvider(Font, Function)
-	 */
-	public IconProperty setIconProvider(Font font, Function<String, Character> converter) {
-		return icon.setProvider(font, converter);
 	}
 
 	/**

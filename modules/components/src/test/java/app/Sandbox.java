@@ -18,57 +18,45 @@
 
 package app;
 
-import io.github.palexdev.mfxcomponents.controls.buttons.MFXIconButton;
 import io.github.palexdev.mfxcomponents.controls.progress.MFXProgressIndicator;
 import io.github.palexdev.mfxcomponents.controls.progress.ProgressDisplayMode;
+import io.github.palexdev.mfxcomponents.skins.MFXLinearProgressIndicatorSkin;
+import io.github.palexdev.mfxcomponents.theming.JavaFXThemes;
 import io.github.palexdev.mfxcomponents.theming.MaterialThemes;
-import io.github.palexdev.mfxcore.controls.Label;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
-import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
+import io.github.palexdev.mfxcomponents.theming.UserAgentBuilder;
+import io.github.palexdev.mfxcore.observables.When;
 import javafx.application.Application;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.scenicview.ScenicView;
 
-import static io.github.palexdev.mfxcore.utils.RandomUtils.random;
+import static io.github.palexdev.mfxcore.utils.EnumUtils.next;
 
 public class Sandbox extends Application {
 
     @Override
     public void start(Stage stage) {
-        VBox box = new VBox(30);
-        box.setAlignment(Pos.CENTER);
-        box.setBackground(Background.fill(Color.WHITE));
+        UserAgentBuilder.builder()
+            .themes(JavaFXThemes.MODENA)
+            .themes(MaterialThemes.INDIGO_LIGHT)
+            .build()
+            .setGlobal();
 
         MFXProgressIndicator indicator = new MFXProgressIndicator();
-        indicator.setDisplayMode(ProgressDisplayMode.LINEAR);
-        //indicator.prefWidthProperty().bind(box.widthProperty().subtract(200));
+        StackPane pane = new StackPane(indicator);
 
-        Label label = new Label();
-        label.setAlignment(Pos.CENTER);
-        label.setMinSize(200, 40);
-        label.textProperty().bind(indicator.progressProperty()
-            .map(p -> p.doubleValue() < 0 ? "INDETERMINATE" : p.doubleValue() * 100 + "%")
-        );
+        When.onInvalidated(indicator.skinProperty())
+            .then(s -> {
+                if (s instanceof MFXLinearProgressIndicatorSkin) return;
+                indicator.setDisplayMode(next(ProgressDisplayMode.class, indicator.getDisplayMode()));
+            })
+            .listen();
 
-        MFXIconButton minus = new MFXIconButton(new MFXFontIcon(FontAwesomeSolid.MINUS));
-        minus.setOnAction(e -> indicator.setProgress(indicator.getProgress() - random.nextFloat(0, 0.3f)));
-        MFXIconButton plus = new MFXIconButton(new MFXFontIcon(FontAwesomeSolid.PLUS));
-        plus.setOnAction(e -> indicator.setProgress(Math.max(0, indicator.getProgress()) + random.nextFloat(0, 0.3f)));
-
-        HBox actions = new HBox(30, minus, plus);
-        actions.setAlignment(Pos.CENTER);
-
-        box.getChildren().addAll(label, indicator, actions);
-        Scene scene = new Scene(box, 600, 600);
-        MaterialThemes.INDIGO_LIGHT.applyOn(scene);
+        Scene scene = new Scene(pane, 600, 600);
         stage.setScene(scene);
         stage.show();
+
         ScenicView.show(scene);
     }
 }
