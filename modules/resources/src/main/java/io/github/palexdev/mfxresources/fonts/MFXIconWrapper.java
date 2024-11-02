@@ -669,8 +669,6 @@ public class MFXIconWrapper extends StackPane {
 	/**
 	 * Convenience method to set the {@link #iconProperty()} to a new {@link MFXFontIcon} instance given an icon
 	 * description/name.
-	 * <p>
-	 * Keep in mind that the default icons provider for new {@link MFXFontIcon} is {@link IconsProviders#defaultProvider()}
 	 */
 	public MFXIconWrapper setIcon(String desc) {
 		setIcon(new MFXFontIcon(desc));
@@ -683,17 +681,6 @@ public class MFXIconWrapper extends StackPane {
 	 */
 	public MFXIconWrapper setIcon(IconProvider provider, String desc) {
 		setIcon(new MFXFontIcon().setIconsProvider(provider).setDescription(desc));
-		return this;
-	}
-
-	/**
-	 * Convenience method to set the {@link #iconProperty()} to a new {@link MFXFontIcon} instance given a font icon pack,
-	 * the function to convert descriptions/names to unicode characters, and the icon description/name.
-	 *
-	 * @see MFXFontIcon#setIconsProvider(Font, Function)
-	 */
-	public MFXIconWrapper setIcon(Font font, Function<String, Character> converter, String desc) {
-		setIcon(new MFXFontIcon().setIconsProvider(font, converter).setDescription(desc));
 		return this;
 	}
 

@@ -18,9 +18,11 @@
 
 package io.github.palexdev.mfxresources.builders;
 
+import java.util.function.Function;
+
 import io.github.palexdev.mfxeffects.beans.Position;
 import io.github.palexdev.mfxresources.fonts.IconDescriptor;
-import io.github.palexdev.mfxresources.fonts.IconsProviders;
+import io.github.palexdev.mfxresources.fonts.IconProvider;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import io.github.palexdev.mfxresources.fonts.MFXIconWrapper;
 import io.github.palexdev.mfxresources.fonts.MFXIconWrapper.AnimationPresets;
@@ -34,9 +36,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Font;
-
-import java.util.function.Function;
 
 /**
  * A commodity class to build {@link MFXIconWrapper}s with fluent API.
@@ -107,13 +106,8 @@ public class IconWrapperBuilder {
 		return this;
 	}
 
-	public IconWrapperBuilder setIcon(IconsProviders provider, String desc) {
+	public IconWrapperBuilder setIcon(IconProvider provider, String desc) {
 		wrapper.setIcon(provider, desc);
-		return this;
-	}
-
-	public IconWrapperBuilder setIcon(Font font, Function<String, Character> converter, String desc) {
-		wrapper.setIcon(font, converter, desc);
 		return this;
 	}
 

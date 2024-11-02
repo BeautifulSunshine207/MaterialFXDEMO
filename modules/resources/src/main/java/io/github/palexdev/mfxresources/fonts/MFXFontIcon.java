@@ -18,8 +18,13 @@
 
 package io.github.palexdev.mfxresources.fonts;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+
 import io.github.palexdev.mfxresources.builders.IconWrapperBuilder;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.*;
@@ -27,23 +32,19 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-
 /**
  * This class is used to display font icons given three main requirements:
  * <p> - The icon font to use
- * <p> - The function which will convert icon names to unicode characters
+ * <p> - The function which will convert icon names to Unicode characters
  * <p> - The icon description/name
  * <p></p>
  * The new API allows {@code MFXFontIcon} to work with any icon font resource as long as the above requirements are met.
  * <p>
- * Users can switch between icon packs at any time with the provided methods: {@link #setIconsProvider(IconProvider)},
- * {@link #setIconsProvider(Font, Function)}.
+ * Users can switch between icon packs at any time with the provided method {@link #setIconsProvider(IconProvider)}.
+ * To use a third party icon pack, first register the provider in {@link IconsProviders} either with
+ * {@link IconsProviders#registerProvider(String, IconProvider)} or {@link IconsProviders#registerProvider(String, Font, Function)}
  * <p>
- * It is also possible to convert an icon description to its unicode character and vice-versa with {@link #descToCode(String)},
+ * It is also possible to convert an icon description to its Unicode character and vice versa with {@link #descToCode(String)},
  * {@link #symbolToCode()}.
  * <p>
  * Now integrates with {@link MFXIconWrapper} in many ways with fluent API.
@@ -54,6 +55,7 @@ public class MFXFontIcon extends Text implements Cloneable {
 	//================================================================================
 	private final String STYLE_CLASS = "mfx-font-icon";
 	private final ObjectProperty<Function<String, Character>> descriptionConverter = new SimpleObjectProperty<>();
+	private boolean changingFont = false;
 
 	//================================================================================
 	// Constructors
@@ -91,22 +93,11 @@ public class MFXFontIcon extends Text implements Cloneable {
 	}
 
 	public MFXFontIcon(String description, double size, Color color) {
-		setSize(size);
 		initialize();
-		setDescription(description);
 		setFont(Font.font(getFont().getFamily(), size));
+		setSize(size);
+		setDescription(description);
 		setColor(color);
-	}
-
-	//================================================================================
-	// Static Methods
-	//================================================================================
-
-	/**
-	 * @return the default icon pack as specified by {@link IconsProviders#defaultProvider()}.
-	 */
-	public static IconsProviders defaultProvider() {
-		return IconsProviders.defaultProvider();
 	}
 
 	//================================================================================
@@ -114,15 +105,39 @@ public class MFXFontIcon extends Text implements Cloneable {
 	//================================================================================
 	private void initialize() {
 		getStyleClass().add(STYLE_CLASS);
-		setIconsProvider(defaultProvider());
-
-		textProperty().bind(Bindings.createStringBinding(
-				() -> {
-					String desc = getDescription();
-					return (desc != null && !desc.isBlank()) ? descToCode(desc) : "";
-				}, descriptionProperty(), fontProperty()
-		));
+		fontProperty().addListener(i -> update(getDescription()));
 		fillProperty().bind(colorProperty());
+	}
+
+	/**
+	 * This is responsible for updating the icon's state. It's called whenever the description or font properties change.
+	 * <p>
+	 * With the latest version, {@code MFXFontIcon} is capable of automatically determine the icons' provider according
+	 * to the set description. The provider must have been registered beforehand, as it is determined by
+	 * {@link IconsProviders#getProvider(String)}. In case no provider is found, an {@link IllegalArgumentException} is
+	 * thrown.
+	 * <p>
+	 * If the description is valid (not null, not blank, provider found), the text is updated by converting the description
+	 * to a Unicode character, see {@link #descToCode(String)}.
+	 */
+	protected void update(String description) {
+		if (changingFont) return;
+		if (description == null || description.isBlank()) {
+			setText("");
+			return;
+		}
+
+		IconProvider provider = IconsProviders.getProvider(description);
+		if (provider == null) {
+			setText("");
+			throw new IllegalArgumentException("No icons provider for: " + description);
+		}
+		if (!Objects.equals(getDescriptionConverter(), provider.getConverter())) {
+			changingFont = true;
+			setIconsProvider(provider);
+			changingFont = false;
+		}
+		setText(descToCode(description));
 	}
 
 	/**
@@ -132,25 +147,10 @@ public class MFXFontIcon extends Text implements Cloneable {
 	 * the transition.
 	 */
 	public MFXFontIcon setIconsProvider(IconProvider provider) {
-		setDescription("");
 		setDescriptionConverter(provider.getConverter());
-		setFont(provider.loadFont());
-		setFontSize(getSize());
-		return this;
-	}
-
-	/**
-	 * Switches icons pack to a third party one, given the font resource as a {@link Font} and the function used
-	 * to convert icons description/names to their corresponding unicode character.
-	 * <p></p>
-	 * Note that this will also clear the {@link #descriptionProperty()} to avoid any exception or invalid state during
-	 * the transition.
-	 */
-	public MFXFontIcon setIconsProvider(Font font, Function<String, Character> converter) {
-		setDescription("");
-		setDescriptionConverter(converter);
+		Font font = provider.loadFont();
 		setFont(font);
-		setSize(font.getSize());
+		setFontSize(getSize());
 		return this;
 	}
 
@@ -214,9 +214,14 @@ public class MFXFontIcon extends Text implements Cloneable {
 
 	private final StyleableStringProperty description = new SimpleStyleableStringProperty(
 			StyleableProperties.DESCRIPTION,
-			this,
-			"description"
+		this,
+		"description"
 	) {
+		@Override
+		protected void invalidated() {
+			update(get());
+		}
+
 		@Override
 		public StyleOrigin getStyleOrigin() {
 			return StyleOrigin.USER_AGENT;

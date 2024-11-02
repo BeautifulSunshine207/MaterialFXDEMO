@@ -18,13 +18,16 @@
 
 package io.github.palexdev.mfxresources.fonts;
 
+import java.io.InputStream;
+import java.util.NavigableMap;
+import java.util.TreeMap;
+import java.util.function.Function;
+
 import io.github.palexdev.mfxresources.MFXResources;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeBrands;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeRegular;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
-
-import java.io.InputStream;
-import java.util.function.Function;
+import javafx.scene.text.Font;
 
 /**
  * This enum contains all the "officially" supported icon fonts.
@@ -34,6 +37,14 @@ public enum IconsProviders implements IconProvider {
 	FONTAWESOME_REGULAR("FontAwesome/regular/FontAwesomeRegular.ttf", FontAwesomeRegular::toCode),
 	FONTAWESOME_SOLID("FontAwesome/solid/FontAwesomeSolid.ttf", FontAwesomeSolid::toCode),
 	;
+
+	private static final NavigableMap<String, IconProvider> PROVIDERS = new TreeMap<>();
+
+	static {
+		registerProvider("fab-", FONTAWESOME_BRANDS);
+		registerProvider("far-", FONTAWESOME_REGULAR);
+		registerProvider("fas-", FONTAWESOME_SOLID);
+	}
 
 	private final String font;
 	private final Function<String, Character> converter;
@@ -59,9 +70,67 @@ public enum IconsProviders implements IconProvider {
 	}
 
 	/**
-	 * @return the default icon provider used by {@link MFXFontIcon}s, currently {@link #FONTAWESOME_SOLID}
+	 * Registers the given {@link IconProvider} to the given prefix.
+	 * <p>
+	 * When {@link MFXFontIcon} is going to receive a description with such prefix, it's automatically going to use this
+	 * provider.
+	 * <p></p>
+	 * If a provider for a prefix is already present, it will be replaced with this new one.
 	 */
-	public static IconsProviders defaultProvider() {
-		return FONTAWESOME_SOLID;
+	public static void registerProvider(String prefix, IconProvider provider) {
+		PROVIDERS.put(prefix, provider);
+	}
+
+	/**
+	 * Creates an anonymous {@link IconProvider} implementation that returns the given converter and font.
+	 * <p>
+	 * Delegates to {@link #registerProvider(String, IconProvider)}.
+	 */
+	public static void registerProvider(String prefix, Font font, Function<String, Character> converter) {
+		registerProvider(prefix, new IconProvider() {
+			@Override
+			public String getFontPath() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Function<String, Character> getConverter() {
+				return converter;
+			}
+
+			@Override
+			public InputStream load() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Font loadFont() {
+				return font;
+			}
+
+			@Override
+			public Font loadFont(double size) {
+				return font;
+			}
+		});
+	}
+
+	/**
+	 * Given an icon descriptor as a String, attempts to return an {@link IconProvider} for its prefix.
+	 * <p>
+	 * If none is found returns {@code null}.
+	 */
+	public static IconProvider getProvider(String description) {
+		String prefix = PROVIDERS.floorKey(description);
+		if (prefix != null && description.startsWith(prefix))
+			return PROVIDERS.get(prefix);
+		return null;
+	}
+
+	/**
+	 * Delegates to {@link #getProvider(String)}.
+	 */
+	public static IconProvider getProvider(IconDescriptor descriptor) {
+		return getProvider(descriptor.getDescription());
 	}
 }

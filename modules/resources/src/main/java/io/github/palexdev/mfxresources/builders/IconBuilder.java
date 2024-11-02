@@ -18,8 +18,10 @@
 
 package io.github.palexdev.mfxresources.builders;
 
+import java.util.function.Function;
+
 import io.github.palexdev.mfxresources.fonts.IconDescriptor;
-import io.github.palexdev.mfxresources.fonts.IconsProviders;
+import io.github.palexdev.mfxresources.fonts.IconProvider;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
@@ -31,9 +33,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-
-import java.util.function.Function;
 
 /**
  * A commodity class to build {@link MFXFontIcon}s with fluent API.
@@ -89,13 +88,8 @@ public class IconBuilder {
 		return this;
 	}
 
-	public IconBuilder setIconsProvider(IconsProviders provider) {
+	public IconBuilder setIconsProvider(IconProvider provider) {
 		icon.setIconsProvider(provider);
-		return this;
-	}
-
-	public IconBuilder setIconsProvider(Font font, Function<String, Character> converter) {
-		icon.setIconsProvider(font, converter);
 		return this;
 	}
 

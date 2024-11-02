@@ -21,9 +21,6 @@ package io.github.palexdev.mfxresources.base.properties;
 import io.github.palexdev.mfxresources.fonts.IconProvider;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.scene.text.Font;
-
-import java.util.function.Function;
 
 /**
  * Simple extension of {@link ReadOnlyObjectWrapper} to be used for {@link MFXFontIcon} objects,
@@ -81,22 +78,6 @@ public class IconProperty extends ReadOnlyObjectWrapper<MFXFontIcon> {
 			set(new MFXFontIcon().setIconsProvider(provider));
 		} else {
 			val.setIconsProvider(provider);
-		}
-		return this;
-	}
-
-	/**
-	 * Delegate for {@link MFXFontIcon#setIconsProvider(Font, Function)}.
-	 * <p>
-	 * This is null-safe, meaning that if the current value of the property is null a new {@link MFXFontIcon} will
-	 * be created and no exception will be raised.
-	 */
-	public IconProperty setProvider(Font font, Function<String, Character> converter) {
-		MFXFontIcon val = get();
-		if (val == null) {
-			set(new MFXFontIcon().setIconsProvider(font, converter));
-		} else {
-			val.setIconsProvider(font, converter);
 		}
 		return this;
 	}
