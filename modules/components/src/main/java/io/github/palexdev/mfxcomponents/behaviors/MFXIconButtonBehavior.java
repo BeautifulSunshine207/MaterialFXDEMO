@@ -1,12 +1,12 @@
 package io.github.palexdev.mfxcomponents.behaviors;
 
+import java.util.function.Consumer;
+
 import io.github.palexdev.mfxcomponents.controls.buttons.MFXIconButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-
-import java.util.function.Consumer;
 
 /**
  * This is the default behavior used by all {@link MFXIconButton} components.
@@ -52,8 +52,8 @@ public class MFXIconButtonBehavior extends MFXSelectableBehaviorBase<MFXIconButt
     @Override
     protected void handleSelection() {
         MFXIconButton btn = getNode();
-        if (!btn.isSelectable()) {
-            // If the button is not a toggle it still acts like a normal button!
+        if (!btn.isSelectable() || btn.selectedProperty().isBound()) {
+            // If the button is not a toggle, or the property is bound, act like a normal button!
             btn.fire();
             return;
         }
