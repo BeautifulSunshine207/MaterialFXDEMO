@@ -2,6 +2,7 @@ package io.github.palexdev.mfxcomponents.window.popups;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -17,6 +18,7 @@ import io.github.palexdev.mfxcore.base.beans.Position;
 import io.github.palexdev.mfxcore.base.beans.Size;
 import io.github.palexdev.mfxcore.base.properties.NodeProperty;
 import io.github.palexdev.mfxcore.base.properties.PositionProperty;
+import io.github.palexdev.mfxcore.events.WhenEvent;
 import io.github.palexdev.mfxcore.observables.When;
 import io.github.palexdev.mfxeffects.animations.Animations;
 import io.github.palexdev.mfxeffects.animations.Animations.PauseBuilder;
@@ -28,10 +30,10 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 /**
@@ -84,6 +86,7 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
     private boolean indirect = false;
     private When<?> hoverWhen;
     private When<?> ownerHoverWhen;
+    private WhenEvent<?> ownerClosedWhen;
 
     //================================================================================
     // Constructors
@@ -105,6 +108,18 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
 
         skinProperty().addListener(i -> setSkin((IMFXPopupSkin) null));
         showing.addListener(i -> handleShowingChanged());
+
+        When.onInvalidated(ownerWindowProperty())
+            .condition(Objects::nonNull)
+            .then(w -> {
+                    ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
+                        .process(e -> close())
+                        .asFilter()
+                        .register();
+                }
+            )
+            .oneShot()
+            .listen();
     }
 
     /**
@@ -223,6 +238,10 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
      */
     public final void close() {
         super.hide();
+        if (ownerClosedWhen != null) {
+            ownerClosedWhen.dispose();
+            ownerClosedWhen = null;
+        }
     }
 
     /**
@@ -319,20 +338,6 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
      */
     @Override
     public void hide() {
-        /*
-         * This check is due to a JavaFX bug in WindowStage.setBounds(...) method which doesn't check for the window
-         * to be not null before doing anything on it.
-         * This seems to happen when the Popup is open, but the main window is being closed.
-         * Animations at such stage cannot be used; also, it's not necessary to explicitly hide it since in theory the
-         * framework will handle it automatically
-         */
-        boolean showing = Optional.ofNullable(getOwner())
-            .flatMap(n -> Optional.ofNullable(n.getScene()))
-            .map(Scene::getWindow)
-            .map(Window::isShowing)
-            .orElse(true);
-        if (!showing) return;
-
         retrieveSkin().ifPresentOrElse(
             IMFXPopupSkin::animateOut,
             this::close

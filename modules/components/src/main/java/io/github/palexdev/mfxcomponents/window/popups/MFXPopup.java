@@ -2,6 +2,7 @@ package io.github.palexdev.mfxcomponents.window.popups;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.github.palexdev.mfxcomponents.controls.base.MFXStyleable;
@@ -11,6 +12,8 @@ import io.github.palexdev.mfxcore.base.beans.Position;
 import io.github.palexdev.mfxcore.base.beans.Size;
 import io.github.palexdev.mfxcore.base.properties.NodeProperty;
 import io.github.palexdev.mfxcore.base.properties.PositionProperty;
+import io.github.palexdev.mfxcore.events.WhenEvent;
+import io.github.palexdev.mfxcore.observables.When;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -19,10 +22,10 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 
 /**
  * Most generic type of popup. Extends {@link PopupControl} and implements {@link IMFXPopup}, makes use of:
@@ -59,7 +62,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
             }
         }
     };
-    private WeakReference<Window> windowOwner;
+    protected WhenEvent<?> ownerClosedWhen;
 
     //================================================================================
     // Constructors
@@ -77,6 +80,18 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
         setAutoHide(true);
         setHideOnEscape(true);
         skinProperty().addListener(i -> setSkin((IMFXPopupSkin) null));
+
+        When.onInvalidated(ownerWindowProperty())
+            .condition(Objects::nonNull)
+            .then(w -> {
+                    ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
+                        .process(e -> close())
+                        .asFilter()
+                        .register();
+                }
+            )
+            .oneShot()
+            .listen();
     }
 
     /**
@@ -106,7 +121,6 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
         if (owner == null) throw new IllegalArgumentException("Owner cannot be null!");
         if (owner.getScene() == null || owner.getScene().getWindow() == null)
             throw new IllegalStateException("Cannot show the popup. The node must be attached to a scene/window!");
-        windowOwner = null;
         setOwner(owner);
         setAnchor(anchor);
         Position pos = computePosition(anchor);
@@ -125,7 +139,6 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
         if (!window.isShowing())
             throw new IllegalStateException("The given window is still hidden!");
         base.setOwnerRef(null);
-        setWindowOwner(window);
         setAnchor(anchor);
         Size bounds = Size.of(window.getWidth(), window.getHeight());
         Point2D origin = new Point2D(window.getX(), window.getY());
@@ -139,6 +152,10 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
      */
     public final void close() {
         super.hide();
+        if (ownerClosedWhen != null) {
+            ownerClosedWhen.dispose();
+            ownerClosedWhen = null;
+        }
     }
 
     /**
@@ -157,7 +174,7 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
      * a Window owner.
      */
     public void windowReposition() {
-        Window window = getWindowOwner();
+        Window window = getOwnerWindow();
         if (window == null) return;
         Size bounds = Size.of(window.getWidth(), window.getHeight());
         Point2D origin = new Point2D(window.getX(), window.getY());
@@ -200,20 +217,6 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
      */
     @Override
     public void hide() {
-        /*
-         * This check is due to a JavaFX bug in WindowStage.setBounds(...) method which doesn't check for the window
-         * to be not null before doing anything on it.
-         * This seems to happen when the Popup is open, but the main window is being closed.
-         * Animations at such stage cannot be used; also, it's not necessary to explicitly hide it since in theory the
-         * framework will handle it automatically
-         */
-        boolean showing = Optional.ofNullable(getOwner())
-            .flatMap(n -> Optional.ofNullable(n.getScene()))
-            .map(Scene::getWindow)
-            .map(Window::isShowing)
-            .orElse(true);
-        if (!showing) return;
-
         retrieveSkin().ifPresentOrElse(
             IMFXPopupSkin::animateOut,
             this::close
@@ -464,21 +467,5 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
      */
     protected MFXPopupBase getBase() {
         return base;
-    }
-
-    /**
-     * Unwraps the {@link WeakReference} used to store the popup's Window owner reference.
-     * If the {@link WeakReference} is null, returns null.
-     */
-    public Window getWindowOwner() {
-        return (windowOwner != null) ? windowOwner.get() : null;
-    }
-
-    /**
-     * Sets the {@link WeakReference} used to store the popup's Window owner reference to a new {@link WeakReference} object
-     * built on the given owner reference.
-     */
-    protected void setWindowOwner(Window window) {
-        this.windowOwner = new WeakReference<>(window);
     }
 }
