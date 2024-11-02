@@ -107,9 +107,8 @@ public class Showcase extends Application implements MultipleViewApp<String> {
         sp.setFitToWidth(true);
         sp.setFitToHeight(true);
         CSSFragment.Builder.build()
-            .addSelector(".scroll-pane, .scroll-pane .viewport")
-            .addStyle("-fx-background-color: transparent")
-            .closeSelector()
+            .select(".scroll-pane, .scroll-pane .viewport")
+            .style("-fx-background-color: transparent")
             .applyOn(sp);
 
         Size ws = UIUtils.getWindowSize();

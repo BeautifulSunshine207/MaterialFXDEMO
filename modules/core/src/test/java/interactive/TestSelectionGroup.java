@@ -1,5 +1,11 @@
 package interactive;
 
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import io.github.palexdev.mfxcore.enums.SelectionMode;
 import io.github.palexdev.mfxcore.selection.Selectable;
 import io.github.palexdev.mfxcore.selection.SelectionGroup;
@@ -19,12 +25,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -569,13 +569,11 @@ public class TestSelectionGroup {
     HBox setupStage() {
         HBox box = new HBox();
         CSSFragment.Builder.build()
-                .addSelector(".selectable")
-                .addStyle("-fx-fill: grey")
-                .addStyle("-fx-stroke: black")
-                .closeSelector()
-                .addSelector(".selectable:selected")
-                .addStyle("-fx-fill: green")
-                .closeSelector()
+            .select(".selectable")
+            .style("-fx-fill: grey")
+            .style("-fx-stroke: black")
+            .select(".selectable:selected")
+            .style("-fx-fill: green")
                 .applyOn(box);
         try {
             Scene scene = new Scene(box, 400, 200);

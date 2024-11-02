@@ -18,7 +18,10 @@
 
 package unit;
 
+import io.github.palexdev.mfxcore.builders.InsetsBuilder;
 import io.github.palexdev.mfxcore.utils.fx.CSSFragment;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,24 +35,19 @@ public class CSSFragmentTest {
               -key1: value1;
               -key2: value2;
             }
-                        
             .selector2 {
               -key3: value3;
             }
-                        
-            .selector3 {
-            }""";
+            .selector3 {}
+            """.trim();
         String built = CSSFragment.Builder.build()
-            .addSelector(".selector")
-            .addStyle("-key1: value1")
-            .addStyle("-key2: value2")
-            .closeSelector()
-            .addSelector(".selector2")
-            .addStyle("-key3: value3")
-            .closeSelector()
-            .addSelector(".selector3")
-            .closeSelector()
-            .toString();
+            .select(".selector")
+            .style("-key1: value1")
+            .style("-key2: value2")
+            .select(".selector2")
+            .style("-key3: value3")
+            .select(".selector3")
+            .toCSS();
         assertEquals(expected, built);
     }
 
@@ -60,23 +58,45 @@ public class CSSFragmentTest {
             .selector2 {
               -key: value;
             }
-                        
             .selector3,
             .selector4,
             .selector5 {
               -key2: value2;
-            }""";
+            }
+            """.trim();
         String built = CSSFragment.Builder.build()
-            .addSelector(".selector1")
-            .addSelector(".selector2")
-            .addStyle("-key: value")
-            .closeSelector()
-            .addSelector(".selector3")
-            .addSelector(".selector4")
-            .addSelector(".selector5")
-            .addStyle("-key2: value2")
-            .closeSelector()
-            .toString();
+            .select(".selector1").and(".selector2")
+            .style("-key: value")
+            .select(".selector3").and(".selector4").and(".selector5")
+            .style("-key2: value2")
+            .toCSS();
+        assertEquals(expected, built);
+    }
+
+    @Test
+    void testBuilder3() {
+        Pane pane = new Pane();
+        pane.getStyleClass().addAll("my-pane", "extra");
+        String expected = """
+            .my-pane.extra {
+              -fx-border-color: #ff0000ff;
+              -fx-border-radius: 12.0;
+              -fx-padding: 10.0;
+            }
+            .my-pane.extra .label {
+              -fx-text-fill: #008000;
+              -fx-font-size: 24.0;
+            }
+            """.trim();
+        String built = CSSFragment.Builder.build()
+            .select(pane)
+            .border(Color.RED)
+            .borderRadius(InsetsBuilder.uniform(12))
+            .padding(InsetsBuilder.uniform(10))
+            .select(pane, ".label")
+            .textFill(Color.GREEN)
+            .fontSize(24.0)
+            .toCSS();
         assertEquals(expected, built);
     }
 }
