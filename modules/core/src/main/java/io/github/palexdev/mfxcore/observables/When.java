@@ -18,18 +18,18 @@
 
 package io.github.palexdev.mfxcore.observables;
 
-import io.github.palexdev.mfxcore.behavior.DisposableAction;
-import io.github.palexdev.mfxcore.collections.WeakHashSet;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.value.ObservableValue;
-
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Supplier;
+
+import io.github.palexdev.mfxcore.behavior.DisposableAction;
+import io.github.palexdev.mfxcore.collections.WeakHashSet;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.value.ObservableValue;
 
 /**
  * Useful class to listen to changes for a given {@link ObservableValue} and perform any
@@ -189,6 +189,7 @@ public abstract class When<T> implements DisposableAction {
      */
 	@Override
     public void dispose() {
+        if (isDisposed()) return;
         invalidating.forEach(o -> o.removeListener(invalidatingListener));
         invalidating.clear();
         invalidating = null;

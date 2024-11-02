@@ -18,13 +18,13 @@
 
 package io.github.palexdev.mfxcore.observables;
 
-import io.github.palexdev.mfxcore.base.TriConsumer;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-
 import java.lang.ref.WeakReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+
+import io.github.palexdev.mfxcore.base.TriConsumer;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 public class OnChanged<T> extends When<T> {
     //================================================================================
@@ -131,7 +131,6 @@ public class OnChanged<T> extends When<T> {
 
     @Override
     public void dispose() {
-        super.dispose();
         if (observable != null) {
             if (listener != null) {
                 observable.removeListener(listener);
@@ -140,5 +139,6 @@ public class OnChanged<T> extends When<T> {
             handleMapDisposal();
             observable = null;
         }
+        super.dispose();
     }
 }

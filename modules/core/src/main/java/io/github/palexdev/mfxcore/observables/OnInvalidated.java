@@ -18,13 +18,13 @@
 
 package io.github.palexdev.mfxcore.observables;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.value.ObservableValue;
-
 import java.lang.ref.WeakReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ObservableValue;
 
 public class OnInvalidated<T> extends When<T> {
     //================================================================================
@@ -134,7 +134,6 @@ public class OnInvalidated<T> extends When<T> {
 
     @Override
     public void dispose() {
-        super.dispose();
         if (observable != null) {
             if (listener != null) {
                 observable.removeListener(listener);
@@ -143,5 +142,6 @@ public class OnInvalidated<T> extends When<T> {
             handleMapDisposal();
             observable = null;
         }
+        super.dispose();
     }
 }
