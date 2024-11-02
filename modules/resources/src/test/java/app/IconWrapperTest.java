@@ -19,13 +19,19 @@
 package app;
 
 import io.github.palexdev.mfxeffects.ripple.MFXRippleGenerator;
+import io.github.palexdev.mfxresources.fonts.IconDescriptor;
+import io.github.palexdev.mfxresources.fonts.IconsProviders;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import io.github.palexdev.mfxresources.fonts.MFXIconWrapper;
+import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeBrands;
+import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeRegular;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
+import io.github.palexdev.mfxresources.utils.EnumUtils;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -38,9 +44,24 @@ public class IconWrapperTest extends Application {
 		// Set up like this, the ripple is in front of icon
 		// But the set view order should fix it
 		// Expect the effect behind the icon
-		MFXIconWrapper icon = new MFXIconWrapper(FontAwesomeSolid.random(64), 128)
+		MFXIconWrapper icon = new MFXIconWrapper(FontAwesomeSolid.random(64.0), 128)
+			.setAnimated(true)
+			.setAnimationProvider(MFXIconWrapper.AnimationPresets.FADE)
 			.enableRippleGenerator(true)
 			.makeRound(true);
+		icon.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+			IconsProviders provider = EnumUtils.randomEnum(IconsProviders.class);
+			Object desc = switch (provider) {
+				case FONTAWESOME_BRANDS -> FontAwesomeBrands.class;
+				case FONTAWESOME_SOLID -> FontAwesomeSolid.class;
+				case FONTAWESOME_REGULAR -> FontAwesomeRegular.class;
+			};
+			Enum val = EnumUtils.randomEnum(((Class<Enum>) desc));
+			IconDescriptor toDesc = (IconDescriptor) val;
+			// This is to also test icon switch with CSS
+			icon.setStyle("-mfx-icon: " + toDesc.getDescription());
+		});
+		icon.iconProperty().addListener(i -> icon.getIcon().setSize(64.0));
 
 		// Check
 		ObservableList<Node> children = icon.getChildren();

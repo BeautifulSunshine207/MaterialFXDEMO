@@ -23,6 +23,6 @@ import javafx.application.Application;
 public class ResourcesLauncher {
 
 	public static void main(String[] args) {
-		Application.launch(IconAnimation.class, args);
+        Application.launch(IconWrapperTest.class, args);
 	}
 }

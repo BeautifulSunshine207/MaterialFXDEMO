@@ -18,10 +18,15 @@
 
 package interactive;
 
+import java.util.Optional;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+
 import io.github.palexdev.mfxeffects.enums.RippleState;
 import io.github.palexdev.mfxeffects.ripple.MFXRippleGenerator;
 import io.github.palexdev.mfxeffects.ripple.base.RippleGenerator;
 import io.github.palexdev.mfxresources.builders.IconWrapperBuilder;
+import io.github.palexdev.mfxresources.fonts.IconDescriptor;
 import io.github.palexdev.mfxresources.fonts.IconsProviders;
 import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
 import io.github.palexdev.mfxresources.fonts.MFXIconWrapper;
@@ -29,7 +34,6 @@ import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeBrands;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeRegular;
 import io.github.palexdev.mfxresources.fonts.fontawesome.FontAwesomeSolid;
 import io.github.palexdev.mfxresources.utils.EnumUtils;
-import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
@@ -47,16 +51,25 @@ import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
-import java.util.Optional;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(ApplicationExtension.class)
 public class IconsTests {
 	private static final long sleep = 500L;
 	private static Stage stage;
+
+	static {
+		IconsProviders.registerProvider(
+			"win10-",
+			Font.loadFont(new Win10IkonHandler().getFontResourceAsStream(), 64.0),
+			s -> Optional.ofNullable(Win10.findByDescription(s)).map(w -> ((char) w.getCode())).orElse('\0')
+		);
+		IconsProviders.registerProvider(
+			"fltral-",
+			Font.loadFont(new FluentUiRegularALIkonHandler().getFontResourceAsStream(), 64.0),
+			s -> Optional.ofNullable(FluentUiRegularAL.findByDescription(s)).map(w -> ((char) w.getCode())).orElse('\0')
+		);
+	}
 
 	@Start
 	void start(Stage stage) {
@@ -130,19 +143,14 @@ public class IconsTests {
 
 		AtomicReference<Exception> exRef = new AtomicReference<>();
 		icon.set(new MFXFontIcon("fas-circle", 64.0) {
-			{
-				textProperty().bind(Bindings.createStringBinding(
-					() -> {
-						try {
-							String desc = getDescription();
-							return (desc != null && !desc.isBlank()) ? descToCode(desc) : "";
-						} catch (Exception ex) {
-							exRef.set(ex);
-							ex.printStackTrace();
-							return "";
-						}
-					}, descriptionProperty(), fontProperty()
-				));
+			@Override
+			protected void update(String description) {
+				try {
+					super.update(description);
+				} catch (Exception ex) {
+					exRef.set(ex);
+					ex.printStackTrace();
+				}
 			}
 		});
 		robot.interact(() -> root.getChildren().setAll(icon.get()));
@@ -159,32 +167,22 @@ public class IconsTests {
 	void testCustomProviders(FxRobot robot) throws InterruptedException {
 		StackPane root = setupStage();
 		final AtomicReference<MFXFontIcon> icon = new AtomicReference<>(new MFXFontIcon());
+		icon.get().setSize(64.0);
 		robot.interact(() -> root.getChildren().setAll(icon.get()));
 
-		icon.get().setIconsProvider(
-			Font.loadFont(new Win10IkonHandler().getFontResourceAsStream(), 64.0),
-			s -> Optional.ofNullable(Win10.findByDescription(s)).map(w -> (char) w.getCode())
-				.orElse('\0')
-		);
-		icon.get().setDescription(EnumUtils.randomEnum(Win10.class).getDescription());
+		robot.interact(() -> icon.get().setDescription(EnumUtils.randomEnum(Win10.class).getDescription()));
 		assertEquals(64.0, icon.get().getFont().getSize());
 		assertEquals(64.0, icon.get().getSize());
 		assertNotEquals("\0", icon.get().symbolToCode());
 		Thread.sleep(sleep);
 
-		icon.get().setIconsProvider(
-			Font.loadFont(new FluentUiRegularALIkonHandler().getFontResourceAsStream(), 64.0),
-			s -> Optional.ofNullable(FluentUiRegularAL.findByDescription(s)).map(f -> (char) f.getCode())
-				.orElse('\0')
-		);
-		icon.get().setDescription(EnumUtils.randomEnum(FluentUiRegularAL.class).getDescription());
+		robot.interact(() -> icon.get().setDescription(EnumUtils.randomEnum(FluentUiRegularAL.class).getDescription()));
 		assertEquals(64.0, icon.get().getFont().getSize());
 		assertEquals(64.0, icon.get().getSize());
 		assertNotEquals("\0", icon.get().symbolToCode());
 		Thread.sleep(sleep);
 
-		icon.get().setIconsProvider(MFXFontIcon.defaultProvider());
-		icon.get().setDescription(EnumUtils.randomEnum(FontAwesomeSolid.class).getDescription());
+		robot.interact(() -> icon.get().setDescription(EnumUtils.randomEnum(FontAwesomeSolid.class).getDescription()));
 		assertEquals(64.0, icon.get().getFont().getSize());
 		assertEquals(64.0, icon.get().getSize());
 		assertNotEquals("\0", icon.get().symbolToCode());
@@ -286,5 +284,28 @@ public class IconsTests {
 			throw new RuntimeException(e);
 		}
 		return ((StackPane) stage.getScene().getRoot());
+	}
+
+	@Test
+	void testRapidChangeWithDifferentProviders(FxRobot robot) {
+		StackPane root = setupStage();
+		MFXIconWrapper icon = new MFXIconWrapper()
+			.setIcon("fas-circle")
+			.makeRound(true)
+			.setSize(32);
+		robot.interact(() -> root.getChildren().setAll(icon));
+
+		for (int i = 0; i < 1000; i++) {
+			IconsProviders provider = EnumUtils.randomEnum(IconsProviders.class);
+			Object desc = switch (provider) {
+				case FONTAWESOME_BRANDS -> FontAwesomeBrands.class;
+				case FONTAWESOME_SOLID -> FontAwesomeSolid.class;
+				case FONTAWESOME_REGULAR -> FontAwesomeRegular.class;
+			};
+			Enum val = EnumUtils.randomEnum(((Class<Enum>) desc));
+			IconDescriptor toDesc = (IconDescriptor) val;
+			icon.setIcon(toDesc);
+			assertNotNull(toDesc.findByDescription(icon.getIcon().getDescription()));
+		}
 	}
 }
