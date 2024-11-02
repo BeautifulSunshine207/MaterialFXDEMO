@@ -42,7 +42,7 @@ public class NodeBuilder<N extends Node> implements INodeBuilder<N> {
 		this.node = node;
 	}
 
-	public static NodeBuilder<Node> node(Node node) {
+	public static <N extends Node> NodeBuilder<N> node(N node) {
 		return new NodeBuilder<>(node);
 	}
 

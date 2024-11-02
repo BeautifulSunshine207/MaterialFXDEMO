@@ -29,7 +29,7 @@ public class ParentBuilder<P extends Parent> extends NodeBuilder<P> {
 		super(parent);
 	}
 
-	public static ParentBuilder<Parent> parent(Parent parent) {
+	public static <P extends Parent> ParentBuilder<P> parent(P parent) {
 		return new ParentBuilder<>(parent);
 	}
 

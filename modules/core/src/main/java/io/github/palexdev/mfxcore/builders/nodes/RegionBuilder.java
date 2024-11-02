@@ -38,11 +38,11 @@ public class RegionBuilder<R extends Region> extends ParentBuilder<R> {
 		super(region);
 	}
 
-	public static RegionBuilder<Region> region() {
+	public static <R extends Region> RegionBuilder<R> region() {
 		return new RegionBuilder<>();
 	}
 
-	public static RegionBuilder<Region> region(Region region) {
+	public static <R extends Region> RegionBuilder<R> region(R region) {
 		return new RegionBuilder<>(region);
 	}
 

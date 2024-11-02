@@ -35,11 +35,11 @@ public class PaneBuilder<P extends Pane> extends RegionBuilder<P> {
 		super(pane);
 	}
 
-	public static PaneBuilder<Pane> pane() {
+	public static <P extends Pane> PaneBuilder<P> pane() {
 		return new PaneBuilder<>();
 	}
 
-	public static PaneBuilder<Pane> pane(Pane pane) {
+	public static <P extends Pane> PaneBuilder<P> pane(P pane) {
 		return new PaneBuilder<>(pane);
 	}
 
