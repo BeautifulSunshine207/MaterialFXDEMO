@@ -18,6 +18,12 @@
 
 package io.github.palexdev.mfxresources.fonts;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import io.github.palexdev.mfxeffects.animations.AnimationFactory;
 import io.github.palexdev.mfxeffects.animations.Animations;
 import io.github.palexdev.mfxeffects.animations.Animations.KeyFrames;
@@ -40,25 +46,18 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * This component is intended for wrapping {@link MFXFontIcon}s, extends {@link StackPane} and offers
  * some common features that one may want to use with font icons like:
  * <p> - Generate ripple effects on click
  * <p> - Make the icon round
+ * <p> - Switching icons with an animation
  * <p></p>
  * The new API makes these two features easier to use for developers. Many times I had to pass the wrapper instance to a
  * controller just to enable them. Now, they both can be activated in CSS and in FXML, you don't even need their instance
- * in the control as the icon can be specified by editing manually the FXML, the only limit being that you can't change
- * the icons' provider.
+ * in the control as the icon can be specified by editing manually the FXML.
  * <p></p>
  * Note that by default the size of the wrapper is always the same for both width and height, it can be specified via the
  * {@link #sizeProperty()} or you could let this figure it out automatically at layout time. In the latter case, the
@@ -66,24 +65,24 @@ import java.util.function.Function;
  * <p></p>
  * <b>Animation API</b>
  * <p></p>
- * {@code MFXIconWrapper} is now capable of switching the wrapped icon through an animation and here I'm going to explain
+ * {@code MFXIconWrapper} is now capable of switching the wrapped icon through an animation, and here I'm going to explain
  * here some crucial details here. The API has been developed to be as flexible as possible while still following some
  * critical rules.
  * <p>
  * Following classical ways to implement such thing, there is now a new property, {@link #animatedProperty()}, that allows
  * to enable/disable the system. Then a user must specify a {@link BiFunction} that given the old/current icon and the
- * new icon builds the animation, to be precise the return type is {@link IconAnimation}, I'll tell why in a moment.
+ * new icon builds the animation, to be precise the return type is {@link IconAnimation}, I'll tell you why in a moment.
  * <p>
  * The main issue with this wrapper is that it has been developed to keep at max two nodes, the ripple generator and the
  * icon. However, some animations may need to operate on both the old and the new. I had different choices at this point,
- * like for example give the user the modifiable children list and let the management be manual. But I didn't want to
- * break this rule so the here's the solution I came up with.
+ * like, for example, give the user the modifiable children's list and let the management be manual. But I didn't want to
+ * break this rule, so here's the solution I came up with.
  * <p>
  * When the icon changes, the new one is added to the children list alongside the old one, but it's set to be <b>invisible</b>.
  * At this point, if an animation is already playing it is stopped by invoking {@link IconAnimation#stop(MFXIconWrapper)}.
- * This wrapping class, contains three values, the animation playing, the old icon and the new icon. If multiple animations
+ * This wrapping class contains three values, the animation playing, the old icon and the new icon. If multiple animations
  * are played in rapid succession, by stopping the last one with that method, we ensure {@code MFXIconWrapper} is in a
- * consistent state. However it's <b>important</b> to precise that it only ensures the children list consists of the
+ * consistent state. However, it's <b>important</b> to precise that it only ensures the children list consists of the
  * ripple generator (if enabled) and the new icon. If any property of the new icon was changed, that is user's responsibility
  * to reset when the animation stops (see {@link Animations#onStopped(Animation, Runnable, boolean)}).
  * <p>
@@ -97,7 +96,7 @@ import java.util.function.Function;
  * the animation ends/stops (again see {@link Animations#onStatus(Animation, Animation.Status, Runnable, boolean)} to
  * understand the difference).
  * <p>
- * Last but not least, I understand that in some occasions it may be difficult to set an animation via code, since often
+ * Last but not least, I understand that on some occasions it may be difficult to set an animation via code, since often
  * the wrapper is part of the view/skin. So, just like the ripple generator and the round feature, I added a property
  * {@link #animationPresetProperty()} that allows to set one of the predefined animations in {@link AnimationPresets}
  * from CSS by setting the '-mfx-animation-preset' property.
@@ -105,6 +104,11 @@ import java.util.function.Function;
  * <b>A very important note</b> about this: the property is just a bridge to CSS. DO NOT use it via code, there's no
  * point in it. If you use {@link #setAnimationProvider(BiFunction)} and {@link #setAnimationPreset(AnimationPresets)}
  * together the one will overwrite the other!
+ * <p></p>
+ * In the latest version, I also addressed another issue. You see, the animation is used only and only if the icon's instance
+ * changed. In other words, if you had a stylesheet changing the icon, the animation would not play as it would not
+ * change the instance but the icon's description. For this reason, I added a new CSS property {@link #iconDescriptionProperty()},
+ * which allows you to change the icon's instance from CSS, and thus using transitions.
  */
 public class MFXIconWrapper extends StackPane {
 	//================================================================================
@@ -183,9 +187,9 @@ public class MFXIconWrapper extends StackPane {
 	/**
 	 * Enables or disables the ripple effect for this wrapper depending on the given boolean flag.
 	 * <p></p>
-	 * If the flag is false the ripple generator is removed from the container and set to null.
+	 * If the flag is false, the ripple generator is removed from the container and set to null.
 	 * <p></p>
-	 * If the flag is true a new ripple generator is created, the given function determines where ripple effects will be
+	 * If the flag is true, a new ripple generator is created, the given function determines where ripple effects will be
 	 * generated. An {@link EventHandler} is also added to generate ripples on {@link MouseEvent#MOUSE_PRESSED} when
 	 * the clicked button is the primary.
 	 *
@@ -233,7 +237,7 @@ public class MFXIconWrapper extends StackPane {
 	/**
 	 * Makes this container round by applying a {@link Circle} clip on it.
 	 * <p></p>
-	 * If the given boolean flag is false the clip is removed.
+	 * If the given boolean flag is false, the clip is removed.
 	 * <p>
 	 * If the given boolean flag is true and the clip is already set, simply returns.
 	 */
@@ -258,7 +262,7 @@ public class MFXIconWrapper extends StackPane {
 	/**
 	 * Makes this container round by applying a {@link Circle} clip on it, uses the given radius for the circle.
 	 * <p></p>
-	 * If the given boolean flag is false the clip is removed.
+	 * If the given boolean flag is false, the clip is removed.
 	 * <p>
 	 * If the given boolean flag is true and the clip is already set, simply returns.
 	 */
@@ -388,6 +392,24 @@ public class MFXIconWrapper extends StackPane {
 		}
 	};
 
+	private final StyleableStringProperty iconDescription = new SimpleStyleableStringProperty(
+		StyleableProperties.ICON,
+		this,
+		"icon",
+		""
+	) {
+		@Override
+		protected void invalidated() {
+			String desc = get();
+			if (!icon.isBound()) setIcon(desc);
+		}
+
+		@Override
+		public StyleOrigin getStyleOrigin() {
+			return StyleOrigin.USER_AGENT;
+		}
+	};
+
 	private final StyleableDoubleProperty size = new SimpleStyleableDoubleProperty(
 		StyleableProperties.SIZE,
 		this,
@@ -476,6 +498,24 @@ public class MFXIconWrapper extends StackPane {
 		this.animationPreset.set(animationPreset);
 	}
 
+	protected String getIconDescription() {
+		return iconDescription.get();
+	}
+
+	/**
+	 * This property allows changing the icon instance from CSS and as a consequence, use icon transitions without the
+	 * need of code. For this reason, the property is {@code protected}, this is intended for CSS use only!
+	 * <p>
+	 * The relative CSS property is: '-mfx-icon'.
+	 */
+	protected StyleableStringProperty iconDescriptionProperty() {
+		return iconDescription;
+	}
+
+	protected void setIconDescription(String iconDescription) {
+		this.iconDescription.set(iconDescription);
+	}
+
 	public double getSize() {
 		return size.get();
 	}
@@ -554,6 +594,13 @@ public class MFXIconWrapper extends StackPane {
 				null
 			);
 
+		private static final CssMetaData<MFXIconWrapper, String> ICON =
+			FACTORY.createStringCssMetaData(
+				"-mfx-icon",
+				MFXIconWrapper::iconDescriptionProperty,
+				""
+			);
+
 		private static final CssMetaData<MFXIconWrapper, Number> SIZE =
 			FACTORY.createSizeCssMetaData(
 				"-mfx-size",
@@ -577,7 +624,7 @@ public class MFXIconWrapper extends StackPane {
 
 		static {
 			List<CssMetaData<? extends Styleable, ?>> data = new ArrayList<>(StackPane.getClassCssMetaData());
-			Collections.addAll(data, ANIMATED, ANIMATION_PRESET, SIZE, ENABLE_RIPPLE, ROUND);
+			Collections.addAll(data, ANIMATED, ANIMATION_PRESET, ICON, SIZE, ENABLE_RIPPLE, ROUND);
 			cssMetaDataList = List.copyOf(data);
 		}
 	}
