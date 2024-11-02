@@ -111,12 +111,10 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
 
         When.onInvalidated(ownerWindowProperty())
             .condition(Objects::nonNull)
-            .then(w -> {
-                    ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
-                        .process(e -> close())
-                        .asFilter()
-                        .register();
-                }
+            .then(w -> ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
+                .process(e -> close())
+                .asFilter()
+                .register()
             )
             .oneShot()
             .listen();
@@ -227,6 +225,10 @@ public class MFXTooltip extends PopupControl implements IMFXPopup {
      * Side note: it's named 'open' to not conflict with {@link #show()}.
      */
     public void open() {
+        if (getOwner() == null || getOwner().getScene() == null) {
+            hide();
+            return;
+        }
         Pos anchor = getAnchor();
         if (anchor == null) anchor = Pos.BOTTOM_CENTER;
         show(anchor);

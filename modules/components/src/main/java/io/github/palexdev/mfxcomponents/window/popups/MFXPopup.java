@@ -83,12 +83,10 @@ public class MFXPopup extends PopupControl implements IMFXPopup {
 
         When.onInvalidated(ownerWindowProperty())
             .condition(Objects::nonNull)
-            .then(w -> {
-                    ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
-                        .process(e -> close())
-                        .asFilter()
-                        .register();
-                }
+            .then(w -> ownerClosedWhen = WhenEvent.intercept(w, WindowEvent.WINDOW_CLOSE_REQUEST)
+                .process(e -> close())
+                .asFilter()
+                .register()
             )
             .oneShot()
             .listen();
