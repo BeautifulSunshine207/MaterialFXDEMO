@@ -18,16 +18,6 @@
 
 package io.github.palexdev.mfxcore.events;
 
-import io.github.palexdev.mfxcore.base.TriConsumer;
-import io.github.palexdev.mfxcore.behavior.DisposableAction;
-import io.github.palexdev.mfxcore.collections.WeakHashSet;
-import io.github.palexdev.mfxcore.observables.When;
-import javafx.beans.value.ObservableValue;
-import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
-import javafx.scene.Node;
-
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.WeakHashMap;
@@ -35,12 +25,22 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import io.github.palexdev.mfxcore.base.TriConsumer;
+import io.github.palexdev.mfxcore.behavior.DisposableAction;
+import io.github.palexdev.mfxcore.collections.WeakHashSet;
+import io.github.palexdev.mfxcore.observables.When;
+import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
+
 /**
  * In the veins of the great and so useful {@link When} construct, this class, strongly inspired by it and its implementations,
  * allows to do pretty much the same things but on {@link Event}s.
  * <p>
- * This construct can be read as "When an event of a given type, occurs on a given node, then do this" or "Intercept events
- * of a given type on a given node, then do this".
+ * This construct can be read as "When an event of a given type, occurs on a given event target, then do this" or "Intercept events
+ * of a given type on a given event target, then do this".
  * <p></p>
  * Just like the {@link When} construct, you can specify an action on the intercept event, a condition under which process
  * or not the event, an action to perform if the condition was not met, and of course you can create a handler that is
@@ -84,13 +84,15 @@ import java.util.function.Function;
  *     // So, this specific example will run once and only once
  * }
  * </pre>
+ *
+ * @see EventTarget
  */
 public class WhenEvent<T extends Event> implements DisposableAction {
 	//================================================================================
 	// Properties
 	//================================================================================
 	protected static final WhenEventsMap whens = new WhenEventsMap();
-	private Node node;
+	private EventTarget target;
 	private EventType<T> eventType;
 	private EventHandler<T> handler;
 	private Consumer<T> action;
@@ -104,13 +106,13 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 	//================================================================================
 	// Constructors
 	//================================================================================
-	public WhenEvent(Node node, EventType<T> eventType) {
-		this.node = node;
+	public WhenEvent(EventTarget target, EventType<T> eventType) {
+		this.target = target;
 		this.eventType = eventType;
 	}
 
-	public static <T extends Event> WhenEvent<T> intercept(Node node, EventType<T> eventType) {
-		return new WhenEvent<>(node, eventType);
+	public static <T extends Event> WhenEvent<T> intercept(EventTarget target, EventType<T> eventType) {
+		return new WhenEvent<>(target, eventType);
 	}
 
 	//================================================================================
@@ -145,8 +147,8 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 
 	/**
 	 * Responsible for building the {@link EventHandler} with all the given parameters and then add it on the specified
-	 * Node. This method won't run if the construct was disposed before, or if the handler is not null (meaning that it
-	 * was already registered before).
+	 * event target. This method won't run if the construct was disposed before, or if the handler is not null
+	 * (meaning that it was already registered before).
 	 */
 	public WhenEvent<T> register() {
 		if (isDisposed() || handler != null) return this;
@@ -176,12 +178,12 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 
 	/**
 	 * Invoked by {@link #register()} if everything went well. Here, the construct is added to a static Map that retains
-	 * all the built constructs, the mapping is as follows: {@code Node -> Set<WhenEvent<?>>}.
+	 * all the built constructs, the mapping is as follows: {@code EventTarget -> Set<WhenEvent<?>>}.
 	 * <p>
-	 * Finally, the built {@link EventHandler} is added on the specified Node.
+	 * Finally, the built {@link EventHandler} is added on the specified {@link EventTarget}.
 	 */
 	protected void doRegister() {
-		WeakHashSet<WhenEvent<?>> set = whens.computeIfAbsent(node, n -> new WeakHashSet<>());
+		WeakHashSet<WhenEvent<?>> set = whens.computeIfAbsent(target, n -> new WeakHashSet<>());
 		set.add(this);
 		rurWrapper.reg();
 		active = true;
@@ -221,12 +223,12 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 	}
 
 	/**
-	 * Unregisters the {@link EventHandler} from the node, sets everything to null, and removes the construct from
+	 * Unregisters the {@link EventHandler} from the event target, sets everything to null, and removes the construct from
 	 * the "global" map.
 	 */
 	@Override
 	public void dispose() {
-		if (node != null) {
+		if (target != null) {
 			if (handler != null) {
 				rurWrapper.unReg();
 				handler = null;
@@ -234,7 +236,7 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 			}
 			handleMapDisposal();
 			eventType = null;
-			node = null;
+			target = null;
 			active = false;
 		}
 	}
@@ -261,19 +263,19 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 	}
 
 	/**
-	 * @return whether this construct has been disposed before. By default, checks if the given {@link EventType} and node
-	 * are null
+	 * @return whether this construct has been disposed before. By default, checks if the given {@link EventType} and
+	 * event target are null
 	 */
 	public boolean isDisposed() {
-		return node == null &&
+		return target == null &&
 			eventType == null;
 	}
 
 	/**
-	 * @return the total number of existing {@code WhenEvent} constructs for a given node
+	 * @return the total number of existing {@code WhenEvent} constructs for a given target
 	 */
-	public static int size(Node node) {
-		return Optional.ofNullable(whens.get(node))
+	public static int size(EventTarget target) {
+		return Optional.ofNullable(whens.get(target))
 			.map(WeakHashSet::size)
 			.orElse(0);
 	}
@@ -299,52 +301,52 @@ public class WhenEvent<T extends Event> implements DisposableAction {
 	 * The aforementioned Map used to store the built {@code WhenEvent} constructs, uses this mapping:
 	 * <pre>
 	 * {@code
-	 * [key -> value] = [Node -> WeakHashSet<WhenEvent<?>>]
+	 * [key -> value] = [EventTarget -> WeakHashSet<WhenEvent<?>>]
 	 * }
 	 * </pre>
-	 * This is because {@code WhenEvent} allows to register multiple constructs on a single node,
+	 * This is because {@code WhenEvent} allows to register multiple constructs on a single event target,
 	 * for this reason, there are several things to consider on disposal:
-	 * <p> 1) There is a non-null Set mapped to the current node
+	 * <p> 1) There is a non-null Set mapped to the current event target
 	 * <p> 2) The construct can be removed from the Set without any null check, but after the removal
 	 * it's good to check whether the Set is now empty
 	 * <p> 3) In such case, we can also remove the mapping from the Map.
 	 */
 	protected final void handleMapDisposal() {
-		WeakHashSet<WhenEvent<?>> set = whens.get(node);
+		WeakHashSet<WhenEvent<?>> set = whens.get(target);
 		if (set == null) return;
 		set.remove(this);
-		if (set.isEmpty()) whens.remove(node);
+		if (set.isEmpty()) whens.remove(target);
 	}
 
 	//================================================================================
 	// Internal Classes
 	//================================================================================
-	public static class WhenEventsMap extends WeakHashMap<Node, WeakHashSet<WhenEvent<?>>> {}
+	public static class WhenEventsMap extends WeakHashMap<EventTarget, WeakHashSet<WhenEvent<?>>> {}
 
 	/**
 	 * Utility internal class that allows to remove some ifs when registering/unregistering the {@link EventHandler}
-	 * on the node.
+	 * on the event target.
 	 */
 	protected class RegUnRegWrapper {
-		private final TriConsumer<Node, EventType<T>, EventHandler<T>> reg;
-		private final TriConsumer<Node, EventType<T>, EventHandler<T>> unReg;
+		private final TriConsumer<EventTarget, EventType<T>, EventHandler<T>> reg;
+		private final TriConsumer<EventTarget, EventType<T>, EventHandler<T>> unReg;
 
 		protected RegUnRegWrapper() {
 			if (asFilter) {
-				reg = Node::addEventFilter;
-				unReg = Node::removeEventFilter;
+				reg = EventTarget::addEventFilter;
+				unReg = EventTarget::removeEventFilter;
 			} else {
-				reg = Node::addEventHandler;
-				unReg = Node::removeEventHandler;
+				reg = EventTarget::addEventHandler;
+				unReg = EventTarget::removeEventHandler;
 			}
 		}
 
 		public void reg() {
-			reg.accept(node, eventType, handler);
+			reg.accept(target, eventType, handler);
 		}
 
 		public void unReg() {
-			unReg.accept(node, eventType, handler);
+			unReg.accept(target, eventType, handler);
 		}
 	}
 }
