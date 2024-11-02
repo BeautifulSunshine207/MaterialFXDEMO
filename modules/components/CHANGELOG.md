@@ -16,6 +16,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.6] - 02-11-2024
+
+### Fixed
+
+- MFXIconButtonBehavior: do not handle selection is the property is bound, but still fire an ActionEvent
+- MFXProgressIndicator skins: implement disposal methods. Changing skins caused the indicator to still have the children
+  and settings from the previous skin
+- MFXPopup and MFXTooltip: fix internal JavaFX exception once and for all, occurring when the owner window had already
+  been closed
+
 ## [11.26.5] - 31-10-2024
 
 ### Added

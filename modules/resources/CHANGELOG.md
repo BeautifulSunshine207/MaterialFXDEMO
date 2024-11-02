@@ -16,6 +16,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.12.0] - 02-11-2024
+
+### Added
+
+- MFXIconWrapper: allow setting MFXFontIcon directly from CSS, as a consequence this allows using the integrated icon
+  transition system from CSS
+- IconDescriptor: implement a method to return the IconDescriptor from a given description
+
+### Changed
+
+- Change the way the font icons system works. MFXFontIcon is now capable of automatically switching to the correct
+  IconsProvider depending on the set descriptor. The premise is that the provider has to be registered first in
+  IconsProviders
+
 ## [11.11.1] - 29-09-2024
 
 ### Fixed

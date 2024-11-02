@@ -16,6 +16,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.11.0] - 02-11-2024
+
+### Added
+
+- InsetsBuilder: add some new methods
+
+### Changed
+
+- WhenEvent: generify construct to work on any EventTarget rather than Node specifically
+- Rework CSSFragment, simpler API, automatic selectors closing, more convenience methods with actual values rather than
+  strings
+- Improve static methods of some node builders
+
+### Fixed
+
+- When: fixed exception occurring when attempting to dispose a construct which had already been disposed before
+
 ## [11.10.5] - 31-10-2024
 
 ### Changed
