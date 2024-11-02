@@ -72,6 +72,22 @@ public class InsetsBuilder {
         return new InsetsBuilder(new Insets(0, 0, 0, left));
     }
 
+    public static boolean isUniform(Insets insets) {
+        return insets.getTop() == insets.getRight() &&
+               insets.getTop() == insets.getBottom() &&
+               insets.getTop() == insets.getLeft();
+    }
+
+    public static String stringify(Insets insets) {
+        if (isUniform(insets)) {
+            return String.valueOf(insets.getTop());
+        }
+        return insets.getTop() + " " +
+               insets.getRight() + " " +
+               insets.getBottom() + " " +
+               insets.getLeft();
+    }
+
     //================================================================================
     // Methods
     //================================================================================
@@ -110,6 +126,20 @@ public class InsetsBuilder {
 
     public CornerRadii toRadius(boolean asPercent) {
         return new CornerRadii(insets.getTop(), insets.getRight(), insets.getBottom(), insets.getLeft(), asPercent);
+    }
+
+    public boolean isUniform() {
+        return isUniform(insets);
+    }
+
+    public String stringify() {
+        if (isUniform(insets)) {
+            return String.valueOf(insets.getTop());
+        }
+        return insets.getTop() + " " +
+               insets.getRight() + " " +
+               insets.getBottom() + " " +
+               insets.getLeft();
     }
 }
 
