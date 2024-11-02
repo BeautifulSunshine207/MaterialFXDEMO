@@ -39,6 +39,13 @@ public interface IconDescriptor {
 	char getCode();
 
 	/**
+	 * @return the descriptor associated with the given description or {@code null} if none is found
+	 */
+	default IconDescriptor findByDescription(String description) {
+		return null;
+	}
+
+	/**
 	 * Optionally a class(especially enums) implementing {@code IconDescriptor} can choose to offer
 	 * a {@code Map} which holds its icons as [description -> code].
 	 * <p>

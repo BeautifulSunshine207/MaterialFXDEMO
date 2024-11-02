@@ -18,15 +18,15 @@
 
 package io.github.palexdev.mfxresources.fonts.fontawesome;
 
-import io.github.palexdev.mfxresources.fonts.IconDescriptor;
-import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
-import io.github.palexdev.mfxresources.utils.EnumUtils;
-import javafx.scene.paint.Color;
-
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import io.github.palexdev.mfxresources.fonts.IconDescriptor;
+import io.github.palexdev.mfxresources.fonts.MFXFontIcon;
+import io.github.palexdev.mfxresources.utils.EnumUtils;
+import javafx.scene.paint.Color;
 
 /**
  * Enumerator class for FontAwesomeSolid icons. (Count: 1390)
@@ -1441,6 +1441,14 @@ public enum FontAwesomeSolid implements IconDescriptor {
     @Override
     public char getCode() {
         return code;
+    }
+
+    @Override
+    public IconDescriptor findByDescription(String description) {
+        return Arrays.stream(values())
+            .filter(d -> d.description.equals(description))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override
