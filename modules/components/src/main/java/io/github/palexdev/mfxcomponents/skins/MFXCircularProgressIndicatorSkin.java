@@ -156,7 +156,7 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
         container.getStyleClass().add("container");
 
         // Finalize init
-        getChildren().addAll(container);
+        getChildren().setAll(container);
         addListeners();
     }
 
@@ -347,6 +347,16 @@ public class MFXCircularProgressIndicatorSkin extends MFXSkinBase<MFXProgressInd
     protected void layoutChildren(double x, double y, double w, double h) {
         arcMultiplier.set(100.0 / (Math.max(w, h) / 2));
         container.resizeRelocate(x, y, w, h);
+    }
+
+    @Override
+    public void dispose() {
+        if (iAnimation != null) {
+            iAnimation.stop();
+            iAnimation = null;
+            getSkinnable().setRotate(0.0);
+        }
+        super.dispose();
     }
 
     //================================================================================

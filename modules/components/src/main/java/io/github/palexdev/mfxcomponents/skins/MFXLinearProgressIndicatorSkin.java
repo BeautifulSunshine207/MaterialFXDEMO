@@ -146,7 +146,7 @@ public class MFXLinearProgressIndicatorSkin extends MFXSkinBase<MFXProgressIndic
         indicator.setClip(clip);
 
         // Finalize init
-        getChildren().addAll(lSegment, rSegment, mBar, sBar, sPoint);
+        getChildren().setAll(lSegment, rSegment, mBar, sBar, sPoint);
         addListeners();
     }
 
@@ -339,6 +339,11 @@ public class MFXLinearProgressIndicatorSkin extends MFXSkinBase<MFXProgressIndic
         mBar.resizeRelocate(0, 0, w, h);
         sBar.resizeRelocate(0, 0, w, h);
         sPoint.resizeRelocate(w - SEGMENTS_GAP, 0, SEGMENTS_GAP, SEGMENTS_GAP);
+    }
 
+    @Override
+    public void dispose() {
+        getSkinnable().setClip(null);
+        super.dispose();
     }
 }
