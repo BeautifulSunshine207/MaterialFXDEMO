@@ -16,6 +16,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.7] - 02-11-2024
+
+### Fixed
+
+- MFXTooltip: do not open if the owner is not in a Scene anymore
+
 ## [11.26.6] - 02-11-2024
 
 ### Fixed
