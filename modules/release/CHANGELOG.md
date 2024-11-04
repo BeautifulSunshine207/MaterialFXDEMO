@@ -16,6 +16,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.8] - 04-11-2024
+
+- Bump components and release modules to version 11.26.8
+- Bump core module to version 11.11.1
+
 ## [11.26.7] - 02-11-2024
 
 - Bump components and release modules to version 11.26.7

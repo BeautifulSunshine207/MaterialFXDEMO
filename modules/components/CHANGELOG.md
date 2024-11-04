@@ -16,6 +16,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.26.8] - 04-11-2024
+
+### Added
+
+- PseudoClasses: allow to quickly set/check custom classes
+- MaterialThemes: add method to convert a theme to its light/dark counterpart
+
+### Changed
+
+- Big refactor for MaterialSurface, now allowing to easily add custom states, and it's also more flexible to
+  extend/customize
+
 ## [11.26.7] - 02-11-2024
 
 ### Fixed

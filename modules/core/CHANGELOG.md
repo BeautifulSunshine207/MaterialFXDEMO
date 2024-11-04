@@ -16,6 +16,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [//]: ##[Unreleased]
 
+## [11.11.1] - 04-11-2024
+
+### Fixed
+
+- NodeUtils: use `intercept` rather than `contains` to get the Screen (+ minor refactors)
+
 ## [11.11.0] - 02-11-2024
 
 ### Added
