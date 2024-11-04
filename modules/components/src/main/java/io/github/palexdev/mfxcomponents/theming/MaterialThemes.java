@@ -35,6 +35,7 @@ public enum MaterialThemes implements Theme {
     ;
 
     private final String path;
+    private MaterialThemes variant;
 
     MaterialThemes(String path) {
         this.path = path;
@@ -58,5 +59,17 @@ public enum MaterialThemes implements Theme {
     @Override
     public String deployName() {
         return "mfx-assets";
+    }
+
+    /**
+     * @return the light/dark variant of this theme.
+     */
+    public MaterialThemes getVariant() {
+        if (variant == null) {
+            variant = (name().endsWith("LIGHT")) ?
+                valueOf(name().replace("LIGHT", "DARK")) :
+                valueOf(name().replace("DARK", "LIGHT"));
+        }
+        return variant;
     }
 }
