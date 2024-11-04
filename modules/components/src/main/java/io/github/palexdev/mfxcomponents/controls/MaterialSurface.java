@@ -1,20 +1,44 @@
+/*
+ * Copyright (C) 2024 Parisi Alessandro - alessandro.parisi406@gmail.com
+ * This file is part of MaterialFX (https://github.com/palexdev/MaterialFX)
+ *
+ * MaterialFX is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of the License,
+ * or (at your option) any later version.
+ *
+ * MaterialFX is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with MaterialFX. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.palexdev.mfxcomponents.controls;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import io.github.palexdev.mfxcomponents.controls.base.MFXStyleable;
 import io.github.palexdev.mfxcomponents.theming.enums.PseudoClasses;
 import io.github.palexdev.mfxcore.base.properties.styleable.StyleableBooleanProperty;
 import io.github.palexdev.mfxcore.base.properties.styleable.StyleableDoubleProperty;
 import io.github.palexdev.mfxcore.base.properties.styleable.StyleableObjectProperty;
+import io.github.palexdev.mfxcore.utils.fx.StyleUtils;
 import io.github.palexdev.mfxeffects.animations.Animations;
-import io.github.palexdev.mfxeffects.animations.Animations.KeyFrames;
-import io.github.palexdev.mfxeffects.animations.Animations.TimelineBuilder;
 import io.github.palexdev.mfxeffects.animations.motion.M3Motion;
 import io.github.palexdev.mfxeffects.enums.ElevationLevel;
 import io.github.palexdev.mfxeffects.ripple.MFXRippleGenerator;
-import io.github.palexdev.mfxeffects.utils.StyleUtils;
 import javafx.animation.Animation;
 import javafx.beans.InvalidationListener;
 import javafx.css.CssMetaData;
+import javafx.css.PseudoClass;
 import javafx.css.Styleable;
 import javafx.css.StyleablePropertyFactory;
 import javafx.scene.Node;
@@ -23,18 +47,14 @@ import javafx.scene.effect.Effect;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-
 /**
  * Material Design 3 components are stratified. Different layers have different purposes. Among the various layers, two
  * are quite important: the state layer and the focus ring layer.
  * <p>
  * <p> - The {@code state layer} is a region on which a color, which is in contrast with the main layer color, is applied
  * at specific levels of opacity according to the various interaction states. Hover -> 8%; Press and Focus -> 12%;
- * Dragged -> 16%. Additionally on this layer ripple effect can be generated to further emphasize press/click interactions.
- * <p> - The {@code focus ring layer} is an effect that is applied only when the component is being focused by a keyboard
+ * Dragged -> 16%. Additionally, on this layer ripple effect can be generated to further emphasize press/click interactions.
+ * <p> - The {@code focus ring layer} is an effect applied only when the component is being focused by a keyboard
  * event, so {@link Node#focusVisibleProperty()} is true. A border is applied around the component.
  * <p></p>
  * There are also components that may also need a shadow effect to further separate themselves from other UI elements,
@@ -55,34 +75,40 @@ import java.util.function.Consumer;
  * <p> - The transition between the different states is a short animation, which makes component look prettier
  * <p> Cons:
  * <p> - I expect a slight impact on performance since we use two extra nodes now. And also because of the animations, however
- * they can be disabled globally via a public static flag, or per component via {@link #animateBackgroundProperty()}
+ * they can be disabled globally via a public static flag, or per component via {@link #animatedProperty()}
  * (more convenient to set it through CSS since most of the time the MaterialSurface is part of a skin)
  * <p> - I expect another very slight impact on performance because to change the opacity according to the current interaction state,
  * a listener is added on the owner's {@link Node#getPseudoClassStates()}. Being a Set, the lookup will still be
- * pretty fast though.
+ * pretty fast though. And also, before resorting to the lookup, some checks are first performed directly on the node's
+ * properties.
  * <p></p>
  * This is intended to be used in skins of components that need to visually distinguish between the various interaction
  * states. When the skin is being disposed, {@link #dispose()} should be called too. Also, always make sure that this
  * is and remains the first child of the component to avoid this from covering the other children.
+ * <p></p>
+ * A recent update reworked the states' system. When a change is detected on the node and the background opacity should
+ * change, the target opacity is determined by {@link #getTargetOpacity()}. To make the surface more flexible, and allow
+ * for custom states (like "selected" which is technically out of specs), a "priority" list is used, {@link #getStates()}.
+ * One can easily add/remove/replace states to adapt the surface to its own needs.
  */
 // TODO dragged state is not implemented yet
-// TODO we should implement a way to specify extra states too (such as selected), even though out of specs
 public class MaterialSurface extends Region implements MFXStyleable {
     //================================================================================
     // Static Properties
     //================================================================================
-    public static boolean animated = true;
+    public static boolean GLOBAL_ANIMATED = true;
 
     //================================================================================
     // Properties
     //================================================================================
     private Region owner;
-    private MFXRippleGenerator rippleGenerator;
+    private MFXRippleGenerator rg;
     private InvalidationListener stateListener;
+    private final List<State> states = new ArrayList<>(State.DEFAULTS);
 
-    private final Region bg;
-    private Animation animation;
-    private double lastOpacity;
+    protected final Region bg;
+    protected Animation animation;
+    protected double lastOpacity;
 
     //================================================================================
     // Constructors
@@ -94,7 +120,7 @@ public class MaterialSurface extends Region implements MFXStyleable {
         bg.getStyleClass().add("bg");
         bg.setOpacity(0.0);
 
-        this.rippleGenerator = new MFXRippleGenerator(bg);
+        rg = new MFXRippleGenerator(bg);
         initialize();
     }
 
@@ -105,9 +131,9 @@ public class MaterialSurface extends Region implements MFXStyleable {
         setManaged(false);
         setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
         getStyleClass().setAll(defaultStyleClasses());
-        getChildren().addAll(bg, rippleGenerator);
+        getChildren().addAll(bg, rg);
 
-        stateListener = i -> handleBackground();
+        stateListener = i -> updateBackground();
         owner.getPseudoClassStates().addListener(stateListener);
     }
 
@@ -115,39 +141,22 @@ public class MaterialSurface extends Region implements MFXStyleable {
      * Fluent way to set up the surface's {@link MFXRippleGenerator}.
      */
     public MaterialSurface initRipple(Consumer<MFXRippleGenerator> config) {
-        config.accept(rippleGenerator);
+        config.accept(rg);
         return this;
     }
 
     /**
      * This is the core method responsible for setting the surface's background opacity.
      * <p>
-     * The opacity is determined by the current interaction state on the owner. The values are specified by:
-     * {@link #hoverOpacityProperty()}, {@link #focusOpacityProperty()} and {@link #pressOpacityProperty()}.
-     * <p></p>
-     * The state checks are delegated to: {@link #isOwnerDisabled()}, {@link #isOwnerPressed()},
-     * {@link #isOwnerFocused()} and {@link #isOwnerHover()}, listed in order of priority.
-     * <p></p>
-     * The opacity is set immediately or through an animation started by {@link #animateBackground(double)}.
+     * The opacity is determined by the {@link #getTargetOpacity()} method.
+     * <p>
+     * The opacity is set immediately or through an animation started by {@link #animate(double)}.
      */
-    // TODO is there a way to remove at least a portion of all these ifs?
-    public void handleBackground() {
-        final double target;
-        if (isOwnerDisabled()) {
-            target = 0.0;
-        } else if (isOwnerPressed()) {
-            target = getPressOpacity();
-        } else if (isOwnerFocused()) {
-            target = getFocusOpacity();
-        } else if (isOwnerHover()) {
-            target = getHoverOpacity();
-        } else {
-            target = 0.0;
-        }
-
+    public void updateBackground() {
+        double target = getTargetOpacity();
         if (lastOpacity == target) return;
-        if (animated && isAnimateBackground()) {
-            animateBackground(target);
+        if (GLOBAL_ANIMATED && isAnimated()) {
+            animate(target);
         } else {
             bg.setOpacity(target);
         }
@@ -155,46 +164,30 @@ public class MaterialSurface extends Region implements MFXStyleable {
     }
 
     /**
-     * @return whether {@link Node#isDisabled()} is true or the pseudo-class ':disabled' is active
-     */
-    public boolean isOwnerDisabled() {
-        return owner.isDisabled() || PseudoClasses.DISABLED.isActiveOn(owner);
-    }
-
-    /**
-     * @return whether {@link Node#isHover()} is true or the pseudo-class ':hover' is active
-     */
-    public boolean isOwnerHover() {
-        return owner.isFocused() || PseudoClasses.HOVER.isActiveOn(owner);
-    }
-
-    /**
-     * @return whether {@link Node#isFocused()} or {@link Node#isFocusWithin()} are ture or either the pseudo-classes
-     * ':focused' or ':focused-within' are active
-     */
-    public boolean isOwnerFocused() {
-        return owner.isFocused() || owner.isFocusWithin() ||
-            PseudoClasses.FOCUSED.isActiveOn(owner) || PseudoClasses.FOCUS_WITHIN.isActiveOn(owner);
-    }
-
-    /**
-     * @return whether {@link Node#isPressed()} is true or the pseudo-class ':focused' is active
-     */
-    public boolean isOwnerPressed() {
-        return owner.isPressed() || PseudoClasses.PRESSED.isActiveOn(owner);
-    }
-
-    /**
      * Stops any previous animation, then creates a new one and transitions the background opacity to the target value.
      *
-     * @param target the opacity needed by the new state
+     * @param opacity the opacity specified by the new state
      */
-    protected void animateBackground(double target) {
+    protected void animate(double opacity) {
         if (Animations.isPlaying(animation)) animation.stop();
-        animation = TimelineBuilder.build()
-            .add(KeyFrames.of(M3Motion.SHORT4, bg.opacityProperty(), target))
+        animation = Animations.TimelineBuilder.build()
+            .add(Animations.KeyFrames.of(M3Motion.SHORT4, bg.opacityProperty(), opacity))
             .getAnimation();
         animation.play();
+    }
+
+    /**
+     * Iterates over the interaction states in {@link #getStates()}. The first state whose {@link Predicate} returns
+     * {@code true} determines the target opacity, given by its {@link State#getOpacityFunction()}.
+     * <p></p>
+     * In case no state results "active", then uses {@link State#FALLBACK}.
+     */
+    protected double getTargetOpacity() {
+        for (State state : states) {
+            if (state.isActive(owner))
+                return state.opacity(this);
+        }
+        return State.FALLBACK.opacity(this);
     }
 
     /**
@@ -202,8 +195,9 @@ public class MaterialSurface extends Region implements MFXStyleable {
      */
     public void dispose() {
         getChildren().clear();
-        rippleGenerator.dispose();
-        rippleGenerator = null;
+        rg.dispose();
+        rg = null;
+        states.clear();
         owner.getPseudoClassStates().removeListener(stateListener);
         stateListener = null;
         owner = null;
@@ -221,20 +215,62 @@ public class MaterialSurface extends Region implements MFXStyleable {
     protected void layoutChildren() {
         double w = getWidth();
         double h = getHeight();
-        if (rippleGenerator != null)
-            rippleGenerator.resizeRelocate(0, 0, w, h);
+        if (rg != null)
+            rg.resizeRelocate(0, 0, w, h);
         bg.resizeRelocate(0, 0, w, h);
     }
 
     //================================================================================
     // Styleable Properties
     //================================================================================
-    private final StyleableBooleanProperty animateBackground = new StyleableBooleanProperty(
-        StyleableProperties.ANIMATE_BACKGROUND,
+    private final StyleableBooleanProperty animated = new StyleableBooleanProperty(
+        StyleableProperties.ANIMATED,
         this,
-        "animateBackground",
+        "animated",
         true
     );
+
+    private final StyleableDoubleProperty disabledOpacity = new StyleableDoubleProperty(
+        StyleableProperties.DISABLED_OPACITY,
+        this,
+        "disabledOpacity",
+        0.0
+    ) {
+        @Override
+        public void set(double v) {
+            double oldValue = get();
+            super.set(v);
+            if (!Objects.equals(oldValue, v)) updateBackground();
+        }
+    };
+
+    private final StyleableDoubleProperty pressedOpacity = new StyleableDoubleProperty(
+        StyleableProperties.PRESSED_OPACITY,
+        this,
+        "pressedOpacity",
+        0.0
+    ) {
+        @Override
+        public void set(double v) {
+            double oldValue = get();
+            super.set(v);
+            if (!Objects.equals(oldValue, v)) updateBackground();
+        }
+    };
+
+    private final StyleableDoubleProperty focusedOpacity = new StyleableDoubleProperty(
+        StyleableProperties.FOCUSED_OPACITY,
+        this,
+        "focusedOpacity",
+        0.0
+    ) {
+        @Override
+        public void set(double v) {
+            double oldValue = get();
+            super.set(v);
+            if (!Objects.equals(oldValue, v)) updateBackground();
+        }
+    };
 
     private final StyleableDoubleProperty hoverOpacity = new StyleableDoubleProperty(
         StyleableProperties.HOVER_OPACITY,
@@ -246,35 +282,7 @@ public class MaterialSurface extends Region implements MFXStyleable {
         public void set(double v) {
             double oldValue = get();
             super.set(v);
-            if (!Objects.equals(oldValue, v)) handleBackground();
-        }
-    };
-
-    private final StyleableDoubleProperty focusOpacity = new StyleableDoubleProperty(
-        StyleableProperties.FOCUS_OPACITY,
-        this,
-        "focusOpacity",
-        0.0
-    ) {
-        @Override
-        public void set(double v) {
-            double oldValue = get();
-            super.set(v);
-            if (!Objects.equals(oldValue, v)) handleBackground();
-        }
-    };
-
-    private final StyleableDoubleProperty pressOpacity = new StyleableDoubleProperty(
-        StyleableProperties.PRESS_OPACITY,
-        this,
-        "pressOpacity",
-        0.0
-    ) {
-        @Override
-        public void set(double v) {
-            double oldValue = get();
-            super.set(v);
-            if (!Objects.equals(oldValue, v)) handleBackground();
+            if (!Objects.equals(oldValue, v)) updateBackground();
         }
     };
 
@@ -310,22 +318,73 @@ public class MaterialSurface extends Region implements MFXStyleable {
         }
     };
 
-    public boolean isAnimateBackground() {
-        return animateBackground.get();
+    public boolean isAnimated() {
+        return animated.get();
     }
 
     /**
      * Specifies whether to animate the background's opacity when the interaction state changes,
-     * see {@link #handleBackground()} and {@link #animateBackground(double)}.
+     * see {@link #updateBackground()} and {@link #animate(double)}.
      * <p>
-     * Can be set in CSS via the property: '-mfx-animate-background'.
+     * Can be set in CSS via the property: '-mfx-animated'.
      */
-    public StyleableBooleanProperty animateBackgroundProperty() {
-        return animateBackground;
+    public StyleableBooleanProperty animatedProperty() {
+        return animated;
     }
 
-    public void setAnimateBackground(boolean animateBackground) {
-        this.animateBackground.set(animateBackground);
+    public void setAnimated(boolean animated) {
+        this.animated.set(animated);
+    }
+
+    public double getDisabledOpacity() {
+        return disabledOpacity.get();
+    }
+
+    /**
+     * Specifies the surface's background opacity when the owner is disabled.
+     * <p>
+     * Can be set in CSS via the property: '-mfx-disabled-opacity'.
+     */
+    public StyleableDoubleProperty disabledOpacityProperty() {
+        return disabledOpacity;
+    }
+
+    public void setDisabledOpacity(double disabledOpacity) {
+        this.disabledOpacity.set(disabledOpacity);
+    }
+
+    public double getPressedOpacity() {
+        return pressedOpacity.get();
+    }
+
+    /**
+     * Specifies the surface's background opacity when the owner is pressed.
+     * <p>
+     * Can be set in CSS via the property: '-mfx-pressed-opacity'.
+     */
+    public StyleableDoubleProperty pressedOpacityProperty() {
+        return pressedOpacity;
+    }
+
+    public void setPressedOpacity(double pressedOpacity) {
+        this.pressedOpacity.set(pressedOpacity);
+    }
+
+    public double getFocusedOpacity() {
+        return focusedOpacity.get();
+    }
+
+    /**
+     * Specifies the surface's background opacity when the owner is focused.
+     * <p>
+     * Can be set in CSS via the property: '-mfx-focused-opacity'.
+     */
+    public StyleableDoubleProperty focusedOpacityProperty() {
+        return focusedOpacity;
+    }
+
+    public void setFocusedOpacity(double focusedOpacity) {
+        this.focusedOpacity.set(focusedOpacity);
     }
 
     public double getHoverOpacity() {
@@ -343,40 +402,6 @@ public class MaterialSurface extends Region implements MFXStyleable {
 
     public void setHoverOpacity(double hoverOpacity) {
         this.hoverOpacity.set(hoverOpacity);
-    }
-
-    public double getFocusOpacity() {
-        return focusOpacity.get();
-    }
-
-    /**
-     * Specifies the surface's background opacity when the owner is focused.
-     * <p>
-     * Can be set in CSS via the property: '-mfx-focus-opacity'.
-     */
-    public StyleableDoubleProperty focusOpacityProperty() {
-        return focusOpacity;
-    }
-
-    public void setFocusOpacity(double focusOpacity) {
-        this.focusOpacity.set(focusOpacity);
-    }
-
-    public double getPressOpacity() {
-        return pressOpacity.get();
-    }
-
-    /**
-     * Specifies the surface's background opacity when the owner is pressed.
-     * <p>
-     * Can be set in CSS via the property: '-mfx-press-opacity'.
-     */
-    public StyleableDoubleProperty pressOpacityProperty() {
-        return pressOpacity;
-    }
-
-    public void setPressOpacity(double pressOpacity) {
-        this.pressOpacity.set(pressOpacity);
     }
 
     public ElevationLevel getElevation() {
@@ -407,31 +432,38 @@ public class MaterialSurface extends Region implements MFXStyleable {
         private static final StyleablePropertyFactory<MaterialSurface> FACTORY = new StyleablePropertyFactory<>(Region.getClassCssMetaData());
         private static final List<CssMetaData<? extends Styleable, ?>> cssMetaDataList;
 
-        private static final CssMetaData<MaterialSurface, Boolean> ANIMATE_BACKGROUND =
+        private static final CssMetaData<MaterialSurface, Boolean> ANIMATED =
             FACTORY.createBooleanCssMetaData(
-                "-mfx-animate-background",
-                MaterialSurface::animateBackgroundProperty,
+                "-mfx-animated",
+                MaterialSurface::animatedProperty,
                 true
+            );
+
+        private static final CssMetaData<MaterialSurface, Number> DISABLED_OPACITY =
+            FACTORY.createSizeCssMetaData(
+                "-mfx-disabled-opacity",
+                MaterialSurface::disabledOpacityProperty,
+                0.0
+            );
+
+        private static final CssMetaData<MaterialSurface, Number> PRESSED_OPACITY =
+            FACTORY.createSizeCssMetaData(
+                "-mfx-press-opacity",
+                MaterialSurface::pressedOpacityProperty,
+                0.0
+            );
+
+        private static final CssMetaData<MaterialSurface, Number> FOCUSED_OPACITY =
+            FACTORY.createSizeCssMetaData(
+                "-mfx-focus-opacity",
+                MaterialSurface::focusedOpacityProperty,
+                0.0
             );
 
         private static final CssMetaData<MaterialSurface, Number> HOVER_OPACITY =
             FACTORY.createSizeCssMetaData(
                 "-mfx-hover-opacity",
                 MaterialSurface::hoverOpacityProperty,
-                0.0
-            );
-
-        private static final CssMetaData<MaterialSurface, Number> FOCUS_OPACITY =
-            FACTORY.createSizeCssMetaData(
-                "-mfx-focus-opacity",
-                MaterialSurface::focusOpacityProperty,
-                0.0
-            );
-
-        private static final CssMetaData<MaterialSurface, Number> PRESS_OPACITY =
-            FACTORY.createSizeCssMetaData(
-                "-mfx-press-opacity",
-                MaterialSurface::pressOpacityProperty,
                 0.0
             );
 
@@ -446,8 +478,8 @@ public class MaterialSurface extends Region implements MFXStyleable {
         static {
             cssMetaDataList = StyleUtils.cssMetaDataList(
                 Region.getClassCssMetaData(),
-                ANIMATE_BACKGROUND,
-                HOVER_OPACITY, FOCUS_OPACITY, PRESS_OPACITY,
+                ANIMATED,
+                DISABLED_OPACITY, PRESSED_OPACITY, FOCUSED_OPACITY, HOVER_OPACITY,
                 ELEVATION
             );
         }
@@ -465,11 +497,164 @@ public class MaterialSurface extends Region implements MFXStyleable {
     //================================================================================
     // Getters
     //================================================================================
+    public Region getOwner() {
+        return owner;
+    }
+
+    public MFXRippleGenerator getRippleGenerator() {
+        return rg;
+    }
+
+    public List<State> getStates() {
+        return states;
+    }
+
+    //================================================================================
+    // Inner Classes
+    //================================================================================
 
     /**
-     * @return the instance of the {@link MFXRippleGenerator} used by the surface
+     * This class represents interaction states with a node called 'owner'. It's a simple wrapper for two values:
+     * <p> 1) A {@link Predicate} used to check whether the state is active on the owner
+     * <p> 2) A {@link Function} that determines the state's opacity
+     * <p></p>
+     * There are 5 default states:
+     * <p> 1) {@link #FALLBACK}
+     * <p> 2) {@link #DISABLED}
+     * <p> 3) {@link #PRESSED}
+     * <p> 4) {@link #FOCUSED}
+     * <p> 5) {@link #HOVER}
+     * <p>
+     * Their opacity, depend on the properties defined in {@link MaterialSurface} (hence why a function and not a supplier).
      */
-    public MFXRippleGenerator getRippleGenerator() {
-        return rippleGenerator;
+    public static class State {
+        //================================================================================
+        // Defaults
+        //================================================================================
+
+        /**
+         * Special state whose predicate is always {@code true}. Used when none of the other states is active. Opacity is 0.0.
+         */
+        public static final State FALLBACK = State.of(n -> true, s -> 0.0);
+
+        /**
+         * This state is activated when the node is disabled or the {@link PseudoClass} ':disabled' is active.
+         * The opacity is retrieved from {@link MaterialSurface#disabledOpacityProperty()}.
+         */
+        public static final State DISABLED = State.of(
+            n -> n.isDisabled() || isPseudoActive(n, PseudoClasses.DISABLED),
+            MaterialSurface::getDisabledOpacity
+        );
+
+        /**
+         * This state is activated when the node is pressed or the {@link PseudoClass} ':pressed' is active.
+         * The opacity is retrieved from {@link MaterialSurface#pressedOpacityProperty()}.
+         */
+        public static final State PRESSED = State.of(
+            n -> n.isPressed() || isPseudoActive(n, PseudoClasses.PRESSED),
+            MaterialSurface::getPressedOpacity
+        );
+
+        /**
+         * This state is activated when the node or any of its children are focused. Or the {@link PseudoClass}es
+         * ':focused' or ':focus-within' are active.
+         * The opacity is retrieved from {@link MaterialSurface#focusedOpacityProperty()}.
+         */
+        public static final State FOCUSED = State.of(
+            n -> n.isFocused() || n.isFocusWithin() || isPseudoActive(n, PseudoClasses.FOCUSED, PseudoClasses.FOCUS_WITHIN),
+            MaterialSurface::getFocusedOpacity
+        );
+
+        /**
+         * This state is activated when the node is hovered or the {@link PseudoClass} ':hover: is active.
+         * The opacity is retrieved from {@link MaterialSurface#hoverOpacityProperty()}.
+         */
+        public static final State HOVER = State.of(
+            n -> n.isHover() || isPseudoActive(n, PseudoClasses.HOVER),
+            MaterialSurface::getHoverOpacity
+        );
+
+        /**
+         * This list contains all the default states, common to pretty much any surface/component. The order by priority
+         * is: disabled, pressed, focused, hover.
+         */
+        public static final List<State> DEFAULTS = List.of(DISABLED, PRESSED, FOCUSED, HOVER);
+
+        //================================================================================
+        // Properties
+        //================================================================================
+        private final Predicate<Node> condition;
+        private final Function<MaterialSurface, Double> opacityFunction;
+
+        public State(Predicate<Node> condition, Function<MaterialSurface, Double> opacityFunction) {
+            this.condition = condition;
+            this.opacityFunction = opacityFunction;
+        }
+
+        public static State of(Predicate<Node> condition, Function<MaterialSurface, Double> opacityFunction) {
+            return new State(condition, opacityFunction);
+        }
+
+        //================================================================================
+        // Methods
+        //================================================================================
+
+        /**
+         * Shortcut method for `getCondition().test(node)`.
+         */
+        public boolean isActive(Node node) {
+            return condition.test(node);
+        }
+
+        /**
+         * Shortcut method for `getOpacityFunction().apply(surface)`.
+         */
+        public double opacity(MaterialSurface surface) {
+            return opacityFunction.apply(surface);
+        }
+
+        //================================================================================
+        // Static Methods
+        //================================================================================
+
+        /**
+         * Convenience method to check whether at least one of the given pseudo classes are active on the owner node.
+         */
+        public static boolean isPseudoActive(Node owner, PseudoClass... classes) {
+            for (PseudoClass pClass : classes) {
+                if (PseudoClasses.isActiveOn(owner, pClass))
+                    return true;
+            }
+            return false;
+        }
+
+        /**
+         * Convenience method to check whether at least one of the given pseudo classes are active on the owner node.
+         */
+        public static boolean isPseudoActive(Node owner, PseudoClasses... classes) {
+            for (PseudoClasses pClass : classes) {
+                if (pClass.isActiveOn(owner))
+                    return true;
+            }
+            return false;
+        }
+
+        //================================================================================
+        // Getters
+        //================================================================================
+
+        /**
+         * @return the {@link Predicate} used to check whether the state is active on a given node
+         */
+        public Predicate<Node> getCondition() {
+            return condition;
+        }
+
+        /**
+         * @return the {@link Function} which determines the state's opacity
+         */
+        public Function<MaterialSurface, Double> getOpacityFunction() {
+            return opacityFunction;
+        }
     }
 }
