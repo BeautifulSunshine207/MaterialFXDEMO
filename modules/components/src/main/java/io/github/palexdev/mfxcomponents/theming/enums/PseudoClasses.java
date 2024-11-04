@@ -18,6 +18,9 @@
 
 package io.github.palexdev.mfxcomponents.theming.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 
@@ -42,6 +45,8 @@ public enum PseudoClasses {
     WITH_ICON_RIGHT(PseudoClass.getPseudoClass("with-icon-right")),
     ;
 
+    private static final Map<String, PseudoClass> CUSTOM_CLASSES_CACHE = new HashMap<>();
+
     private final PseudoClass pseudoClass;
 
     PseudoClasses(PseudoClass pseudoClass) {
@@ -55,11 +60,20 @@ public enum PseudoClasses {
         node.pseudoClassStateChanged(pseudoClass, state);
     }
 
+    public static void setOn(Node node, String pseudoClass, boolean state) {
+        PseudoClass pClass = CUSTOM_CLASSES_CACHE.computeIfAbsent(pseudoClass, PseudoClass::getPseudoClass);
+        node.pseudoClassStateChanged(pClass, state);
+    }
+
     /**
      * Checks whether the PseudoClass is active or not on the given node by searching in the
      * {@link Node#getPseudoClassStates()} Set.
      */
     public boolean isActiveOn(Node node) {
+        return node.getPseudoClassStates().contains(pseudoClass);
+    }
+
+    public static boolean isActiveOn(Node node, PseudoClass pseudoClass) {
         return node.getPseudoClassStates().contains(pseudoClass);
     }
 
