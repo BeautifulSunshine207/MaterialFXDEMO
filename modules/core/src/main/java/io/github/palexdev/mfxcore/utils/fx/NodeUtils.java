@@ -18,9 +18,11 @@
 
 package io.github.palexdev.mfxcore.utils.fx;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 import io.github.palexdev.mfxcore.base.beans.Size;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import io.github.palexdev.mfxcore.observables.When;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -38,8 +40,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Screen;
-
-import java.util.ArrayList;
 
 public class NodeUtils {
 
@@ -179,6 +179,14 @@ public class NodeUtils {
 		return nodes;
 	}
 
+	private static void addAllDescendents(Parent parent, ArrayList<Node> nodes) {
+		for (Node node : parent.getChildrenUnmodifiable()) {
+			nodes.add(node);
+			if (node instanceof Parent)
+				addAllDescendents((Parent) node, nodes);
+		}
+	}
+
 	/**
 	 * Convenience method to execute a given action after that the given control
 	 * has been laid out and its skin is not null anymore.
@@ -199,17 +207,11 @@ public class NodeUtils {
 		}
 
 		if (control.getSkin() == null || addListenerIfNotNull) {
-			control.skinProperty().addListener(new ChangeListener<>() {
-				@Override
-				public void changed(ObservableValue<? extends Skin<?>> observable, Skin<?> oldValue, Skin<?> newValue) {
-					if (newValue != null) {
-						action.run();
-						if (isOneShot) {
-							control.skinProperty().removeListener(this);
-						}
-					}
-				}
-			});
+			When<Skin<?>> when = When.onInvalidated(control.skinProperty())
+				.condition(Objects::nonNull)
+				.then(s -> action.run());
+			if (isOneShot) when.oneShot();
+			when.listen();
 		}
 	}
 
@@ -233,17 +235,11 @@ public class NodeUtils {
 		}
 
 		if (node.getScene() == null || addListenerIfNotNull) {
-			node.sceneProperty().addListener(new ChangeListener<>() {
-				@Override
-				public void changed(ObservableValue<? extends Scene> observable, Scene oldValue, Scene newValue) {
-					if (newValue != null) {
-						action.run();
-						if (isOneShot) {
-							node.sceneProperty().removeListener(this);
-						}
-					}
-				}
-			});
+			When<Scene> when = When.onInvalidated(node.sceneProperty())
+				.condition(Objects::nonNull)
+				.then(s -> action.run());
+			if (isOneShot) when.oneShot();
+			when.listen();
 		}
 	}
 
@@ -263,16 +259,8 @@ public class NodeUtils {
 		Bounds nodeBounds = node.localToScreen(node.getLayoutBounds());
 		Rectangle2D boundsToRect = new Rectangle2D(nodeBounds.getMinX(), nodeBounds.getMinY(), nodeBounds.getWidth(), nodeBounds.getHeight());
 		return Screen.getScreens().stream()
-				.filter(screen -> screen.getBounds().contains(boundsToRect))
+			.filter(screen -> screen.getBounds().intersects(boundsToRect))
 				.findFirst()
 				.orElse(null);
-	}
-
-	private static void addAllDescendents(Parent parent, ArrayList<Node> nodes) {
-		for (Node node : parent.getChildrenUnmodifiable()) {
-			nodes.add(node);
-			if (node instanceof Parent)
-				addAllDescendents((Parent) node, nodes);
-		}
 	}
 }
